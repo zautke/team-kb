@@ -2,6 +2,9 @@
 title: "Code Cartography — the Code-Cartographer subsystem of team-kb (M5)"
 date: 2026-08-11
 type: whitepaper
+tags:
+  - kb/whitepaper
+  - kb/topic/code-cartography
 status: draft
 sources:
   - docs/research/2026-08-11-jcodemunch-functional-spec.md
@@ -305,22 +308,20 @@ graph LR
 
 Three things follow from the join, and each is a saving rather than a cost.
 
-**Same gates.** Code-derived edges pass through the M0 staged write path —
-`propose` then validate then `commit` — exactly like note edges. Write is not commit. A cartographer
-that has re-indexed a repository proposes a diff of nodes and edges; the gates check class
-membership, verb signatures `σ(p)`, closed-enum conformance, and referential integrity; only then
-does it commit. An indexer that wrote directly would be a second write path, and a second write path
-is a second place for the corpus to rot. There is one.
+**Same gates.** Code-derived edges pass through the M0 staged write path — `propose`, validate,
+`commit` — exactly like note edges. A cartographer that has re-indexed a repository proposes a diff
+of nodes and edges; the gates check class membership, verb signatures `σ(p)`, closed-enum
+conformance, and referential integrity; only then does it commit. An indexer that wrote directly
+would be a second write path, and a second write path is a second place for the corpus to rot.
 
-**Same math.** Retrieval over code uses the M1 stack unmodified: FTS5 for lexical,
-the embedding channel for semantic, RRF for fusion, personalized PageRank over the link graph for
-structural proximity. The code graph simply increases the node population that PPR walks. A query
-seeded at an incident note can walk through `ADDRESSED_BY` into the symbol that fixed it and out
-through `DEPENDS_ON` into its callers, and the ranking function does not need to know it crossed a
-boundary.
+**Same math.** Retrieval over code uses the M1 stack unmodified: FTS5 lexical, the embedding channel
+for semantic, RRF for fusion, personalized PageRank for structural proximity. The code graph simply
+increases the node population PPR walks. A query seeded at an incident note can walk through
+`ADDRESSED_BY` into the symbol that fixed it and out through `DEPENDS_ON` into its callers, and the
+ranking function need not know it crossed a boundary.
 
-**Same contract.** Code retrieval returns the same four-state verdict with the same
-coverage disclosure. An agent consuming team-kb learns one contract, not two.
+**Same contract.** Code retrieval returns the same four-state verdict with the same coverage
+disclosure. An agent consuming team-kb learns one contract, not two.
 
 There is one deliberate deviation from the jcodemunch reference. Its optional embedding path lazily
 downloads a local ONNX MiniLM encoder (~23 MB) into the machine's cache. On this hardware that is a
@@ -427,9 +428,8 @@ Concrete shape:
   complexity, t_created, t_expired)`
 - `code_files(id, codebase, path, content_hash, mtime, indexed_at)`
 - `code_edges(src, dst, verb, mode, weight, t_valid, t_invalid, t_created, t_expired)` — the same
-  bi-temporal quartet the note edges carry, so a symbol that
-was deleted in commit *n* is invalidated, not dropped, and "what did this codebase look like as of
-T" stays answerable.
+  bi-temporal quartet the note edges carry, so a symbol deleted in commit *n* is invalidated rather
+  than dropped, and "what did this codebase look like as of T" stays answerable.
 - FTS5 virtual table over symbol name, signature, and doc — the M0 pattern.
 - Embeddings into the existing vector table, tagged by node kind.
 
@@ -460,27 +460,24 @@ mean neither binds.
 
 The economy of M5 is almost entirely in this list. Reused unchanged from earlier milestones:
 
-- **From M0** — SQLite/WAL schema conventions; the staged `propose`/`commit` write path and gates
-  G-1..G-7; closed enums surfaced in tool JSON Schema (so an
-off-vocabulary edge type is unrepresentable at the API, not rejected afterward); FTS5 search;
-path-computed-from-class; provenance requirements; episode capture.
+- **From M0** — SQLite/WAL conventions; the staged `propose`/`commit` write path and gates G-1..G-7;
+  closed enums surfaced in tool JSON Schema (so an off-vocabulary edge type is unrepresentable at the
+  API, not rejected afterward); FTS5 search; path-computed-from-class; provenance; episode capture.
 - **From M1** — the embedding interface and remote endpoint; RRF fusion with tunable weights; the
-  four-state verdict contract with coverage disclosure and
-`did_you_mean`; the `plan_turn` router with tiers and read budgets; the turn-budget accountant and
-session journal.
+  four-state verdict contract with coverage disclosure and `did_you_mean`; the `plan_turn` router
+  with tiers and read budgets; the turn-budget accountant and session journal.
 - **From M2** — the Neo4j mirror and PPR retrieval, which gain code nodes without schema change
   because the verbs are the same fourteen.
 - **From M3** — decay and utility scoring (a symbol not retrieved in ninety days decays like any
-  other node); usage-signal edge reweighting; the retrieval-miss
-replay loop that consumes the negative-evidence log.
+  other node); usage-signal edge reweighting; the retrieval-miss replay loop that consumes the
+  negative-evidence log.
 - **From M4** — the MAF agent-as-MCP-tool hosting pattern. Code-Cartographer is one more specialist
-  beside Curator, Ontologist, Consolidator, Sweeper,
-Contradiction-Resolver, and Librarian; no new hosting infrastructure.
+  beside Curator, Ontologist, Consolidator, Sweeper, Contradiction-Resolver, and Librarian; no new
+  hosting infrastructure.
 
-**Genuinely new in M5:** the Roslyn extraction pass, three tables, the eight tools
-above, and the cross-graph edge proposals. That is the whole delta. If the estimate grows much past
-that, the reuse claim has broken somewhere and the right response is to find where rather than to
-accept the growth.
+**Genuinely new in M5:** the Roslyn extraction pass, three tables, the eight tools above, and the
+cross-graph edge proposals. That is the whole delta. If the estimate grows much past it, the reuse
+claim has broken somewhere, and the response is to find where rather than accept the growth.
 
 ### 5.5 Verification
 
@@ -489,8 +486,8 @@ Consistent with the project's rule that implementation is not success:
 1. **Self-hosting round-trip.** Index `teamkb-mcp`; query a symbol known to exist; assert `ok`,
    correct byte span, retrieved source matching the file on disk.
 2. **Negative evidence.** Query a capability known to be absent (Kerberos, say); assert `absent`,
-   non-zero scanned counts, correct scope, `related_existing`
-populated with files that do not implement it.
+   non-zero scanned counts, correct scope, and `related_existing` populated with files that do not
+   implement it.
 3. **Degradation, not false absence.** Query a Python symbol against a C#-only index; assert
    `degraded`, never `absent`.
 4. **Drift detection.** Edit a file outside the watcher, then retrieve a symbol from it; assert
@@ -498,9 +495,8 @@ populated with files that do not implement it.
 5. **Gate conformance.** Propose a code edge with an off-vocabulary verb; assert schema-layer
    rejection with an actionable error.
 6. **Cross-graph traversal.** Link a symbol to a `Decision` via `DERIVES_FROM mode:implements`;
-   assert the note is reachable from a blast-radius
-query rooted at that symbol and that the inverse `SOURCE_OF` resolves without an authored reciprocal
-edge.
+   assert the note is reachable from a blast-radius query rooted at that symbol, and that the
+   inverse `SOURCE_OF` resolves without an authored reciprocal edge.
 
 ---
 
@@ -509,34 +505,31 @@ edge.
 M5 is the last milestone in the rebuild plan and the least specified. Some of this paper is design;
 some is intention. The line between them:
 
-**Specified — grounded in read sources.** The jcodemunch functional decomposition
-(R4, read from source, not documentation). The ontology's classes, verbs, edge properties, and
-constraint model (`_meta/ontology.md` v1.0.0). The milestone sequence and the Code-Cartographer's
-role within `teamkb-agents` (`docs/plan-2026-08-11-teardown-rebuild.md`). The bi-temporal core,
-invalidate-never-delete, write≠commit, and retrieval-feedback conventions (R1 synthesis).
+**Specified — grounded in read sources.** The jcodemunch functional decomposition (R4, read from
+source, not documentation). The ontology's classes, verbs, edge properties, and constraint model
+(`_meta/ontology.md` v1.0.0). The milestone sequence and the Code-Cartographer's role within
+`teamkb-agents` (the rebuild plan). The bi-temporal core, invalidate-never-delete, write≠commit,
+and retrieval-feedback conventions (R1 synthesis).
 
-**Designed here — coherent with the above, not yet ratified.** The specific mapping
-of code relations onto ontology verbs via `mode` (§3.1). The choice of Roslyn over tree-sitter for
-the first indexer (§5.1). The three-table storage shape (§5.2). The eight-tool surface (§5.3). The
-formalisation of negative evidence as scoped closed-world negation (§4.2). These follow from the
-sources but are this paper's constructions, and any of them can be revised without disturbing the
-thesis.
+**Designed here — coherent with the above, not yet ratified.** The mapping of code relations onto
+ontology verbs via `mode` (§3.1); Roslyn over tree-sitter for the first indexer (§5.1); the
+three-table storage shape (§5.2); the eight-tool surface (§5.3); the formalisation of negative
+evidence as scoped closed-world negation (§4.2). Each follows from the sources but is this paper's
+construction, and any can be revised without disturbing the thesis.
 
-**Speculative — flagged as such.** That the cross-graph queries of §3.2 are the
-ones teams actually want is a hypothesis; the honest test is to build the join and see which get
-used. That code nodes will not degrade note retrieval is untested — a repository contributes far
-more symbols than the vault contributes notes, and a PPR walk seeded in note space could plausibly
-drown in code space. Mitigations exist (node-kind-aware weighting, scope filters) but are
-contingency, not design. Multi-language indexing beyond C# is deferred with no committed design;
-tree-sitter is the obvious second step and the extraction interface should be shaped to accept it,
-but nothing beyond that shape is planned. The analytics tier — hotspots, churn, coupling, layer
-violations, dead code — is out of M5 scope entirely; its knowledge-side analogues (stale notes,
-orphans, circular link loops) are M3 concerns wearing code clothes, and should be built there once
-rather than twice.
+**Speculative — flagged as such.** That the cross-graph queries of §3.2 are the ones teams actually
+want is a hypothesis; the honest test is to build the join and see which get used. That code nodes
+will not degrade note retrieval is untested — a repository contributes far more symbols than the
+vault contributes notes, and a PPR walk seeded in note space could drown in code space. Mitigations
+exist (node-kind-aware weighting, scope filters) but are contingency, not design. Multi-language
+indexing is deferred with no committed design beyond shaping the extraction interface to accept a
+tree-sitter backend. The analytics tier — hotspots, churn, coupling, layer violations, dead code —
+is out of M5 scope; its knowledge-side analogues (stale notes, orphans, circular link loops) are M3
+concerns wearing code clothes, and belong there once rather than twice.
 
-**Explicitly excluded.** Any local model download, including the reference
-implementation's ONNX encoder. Any second write path bypassing the M0 gates. Any second index file.
-Any code-side verb not already in the fourteen.
+**Explicitly excluded.** Any local model download, including the reference implementation's ONNX
+encoder. Any second write path bypassing the M0 gates. Any second index file. Any code-side verb
+not already in the fourteen.
 
 ---
 

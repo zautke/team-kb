@@ -15,14 +15,25 @@ public static class MarkdownSerializer
         sb.AppendLine($"kb_version: \"{Ontology.Version}\"");
         sb.AppendLine($"entity_class: {n.Class}");
         sb.AppendLine($"permalink: {n.Permalink}");
-        sb.AppendLine($"created: \"{n.Created:yyyy-MM-ddTHH:mm:ssZ}\"");
-        sb.AppendLine($"modified: \"{n.Modified:yyyy-MM-ddTHH:mm:ssZ}\"");
+        // Unquoted ISO date-time (no Z, no seconds) — Obsidian Properties parses this as a
+        // typed "Date & time" field; quoted strings degrade to plain text and lose sorting/filtering.
+        sb.AppendLine($"created: {n.Created:yyyy-MM-ddTHH:mm}");
+        sb.AppendLine($"modified: {n.Modified:yyyy-MM-ddTHH:mm}");
         sb.AppendLine($"status: {n.Status}");
         sb.AppendLine($"confidence: {n.Confidence:0.0#}");
         if (n.Aliases.Count > 0)
             sb.AppendLine($"aliases: [{string.Join(", ", n.Aliases.Select(a => $"\"{a}\""))}]");
-        if (n.Tags.Count > 0)
-            sb.AppendLine($"tags: [{string.Join(", ", n.Tags)}]");
+        // Tags are a second grouping/search plane in Obsidian (tag pane, Bases file.hasTag()).
+        // Structural facets are mirrored as namespaced tags so class/status group natively,
+        // alongside the note's own topical tags. Server-computed — authors never write these.
+        var tags = new List<string>
+        {
+            $"kb/{n.Class.ToString().ToLowerInvariant()}",
+            $"kb/status/{n.Status.ToString().ToLowerInvariant()}",
+        };
+        tags.AddRange(n.Tags.Where(t => !tags.Contains(t)));
+        sb.AppendLine("tags:");
+        foreach (var t in tags) sb.AppendLine($"  - {t}");
         if (n.IsolatedJustification is not null)
             sb.AppendLine($"isolated_justification: \"{n.IsolatedJustification.Replace("\"", "'")}\"");
         sb.AppendLine("provenance:");

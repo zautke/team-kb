@@ -2,6 +2,9 @@
 title: "The Formal Theory of the team-kb Knowledge Graph"
 subtitle: "A typed property graph, its integrity constraints, its transition system, and its retrieval algebra"
 type: whitepaper
+tags:
+  - kb/whitepaper
+  - kb/topic/graph-theory
 status: active
 version: "1.0.0"
 date: 2026-08-11

@@ -1,6 +1,9 @@
 ---
 title: "Whitepaper 04 — Self-Learning and Self-Evolution Loops in team-kb"
 type: whitepaper
+tags:
+  - kb/whitepaper
+  - kb/topic/self-learning
 status: active
 created: 2026-08-11
 date: 2026-08-11

@@ -2,6 +2,9 @@
 title: "Curation Tactics — How team-kb Keeps a Knowledge Base Healthy Where master-kb Rotted"
 date: 2026-08-11
 type: whitepaper
+tags:
+  - kb/whitepaper
+  - kb/topic/curation
 status: active
 sources:
   - docs/research/2026-08-11-kb-failure-postmortem-v1.md
@@ -49,9 +52,8 @@ the M4 specialist agents.
 
 ## 1. The anatomy of knowledge-base rot
 
-Rot is not a single disease. The audits separated it into six distinct pathologies, each with its own
-mechanism and its own countermeasure. It is worth walking them in order, because the tactics in later
-sections map onto them one-for-one.
+Rot is not one disease. The audits separated six pathologies, each with its own mechanism and
+countermeasure; the tactics in later sections map onto them one-for-one.
 
 ### 1.1 Duplication — the same idea, twice, forever
 
@@ -61,11 +63,10 @@ different times, decided a note about that topic did not exist. The same twin pa
 shadcn-theming, tailwind-bridge, ui-design, excellence-corpus, two-layer-design-token-architecture, and four
 separate times inside `event/`.
 
-The mechanism is worth naming. The store did not *ignore* the collision — it *resolved* it, by appending a
-`-1` suffix to the permalink. The write succeeded; nothing was logged as wrong. A 2026-05-15 healing audit
-even recorded a `SUPERSEDE` event for one such pair; the losing note was never deleted. Conflict resolution
-that silently succeeds is worse than conflict resolution that fails: a failed write gets a human's
-attention, a suffixed write gets a permanent second copy.
+The mechanism is worth naming. The store did not *ignore* the collision — it *resolved* it, appending a `-1`
+suffix. The write succeeded; nothing was logged as wrong. A 2026-05-15 healing audit even recorded a
+`SUPERSEDE` for one such pair; the losing note was never deleted. Conflict resolution that silently succeeds
+is worse than one that fails: a failed write gets attention, a suffixed write gets a permanent second copy.
 
 At the filename layer the legacy corpus showed **31 colliding basenames** — `readme` ten times, `index` six,
 `tasks` four — and **378 of 653 files (57.9%)** title-cased with spaces against slugs for the rest. Two
@@ -77,23 +78,19 @@ Twelve wikilink targets were spot-checked in the first audit; six resolved. The 
 whole legacy corpus: **862 of 2451 wikilinks (35.2%) unresolvable**.
 
 The causes were mundane and all silent. Bare slugs without folder prefixes
-(`hybrid-rag-architecture-sota-2025-2026`) never resolved even when the target file plainly existed. Links
-into `agent-kb/operations/macos/` survived that subtree's dissolution on 2026-08-02 because the refile pass
-rewrote paths but not inbound references. An incident note cited `project/docker-deployment` as a `CAUSED
-::` target; no such note ever existed.
-
-Nothing in the write path ever asked "does this target exist?" A wikilink was body text, and body text is
-never wrong.
+(`hybrid-rag-architecture-sota-2025-2026`) never resolved even when the target existed. Links into
+`agent-kb/operations/macos/` survived that subtree's dissolution on 2026-08-02 because the refile pass
+rewrote paths but not inbound references. An incident cited `project/docker-deployment` as a `CAUSED ::`
+target; no such note ever existed. Nothing in the write path ever asked "does this target exist?" A wikilink
+was body text, and body text is never wrong.
 
 ### 1.3 Orphans — writes that connect to nothing
 
-**351 of 653 notes (53.8%) had no inbound wikilink at all.** Every relation sampled in the first audit was
-one-sided: an edge written A→B, no back-edge on B. The governance docs asked authors to maintain reciprocity
-by hand; across thousands of writes, they did not.
-
-The formal audit's verdict is the sentence to remember: *the graph was never a graph, it was a folder of
-documents with decorative links.* Half the corpus was unreachable by traversal, so retrieval degraded to
-full-text search over a directory tree — to `grep`.
+**351 of 653 notes (53.8%) had no inbound wikilink at all.** Every relation sampled was one-sided: an edge
+A→B, no back-edge on B. The governance docs asked authors to maintain reciprocity by hand; across thousands
+of writes, they did not. The audit's verdict is the sentence to remember: *the graph was never a graph, it
+was a folder of documents with decorative links.* Half the corpus was unreachable by traversal, so retrieval
+degraded to full-text search over a directory tree — to `grep`.
 
 ### 1.4 Ontology drift — closed vocabularies that were never closed
 
@@ -103,13 +100,9 @@ head was healthy (`fact` at 32%); the tail was a wasteland of singletons: `host_
 `ops_tool`, `tool_path`, `working-dir`, `agent-roster`, `dod`, `bail`. Three sub-pathologies fell out of the
 same measurement:
 
-- **Case-dialect twins.** `part_of` (41) / `PART_OF` (21); `preceded_by` (17) /
-`PRECEDED_BY` (1); `relates_to` (12) / `related_to` (5). Same semantics, two names, no way for a query to
-know.
-- **Category confusion.** Relation verbs used as observation kinds — `relates-to` 13,
-`uses` 11, `implements` 9. Agents had stopped distinguishing edges from properties.
-- **Markdown bleed into predicate names.** The parser accepted `` `RELATED_TO ``,
-`**Related**:`, `**produced_by**:`, `**delivered_by**:` as relations. Formatting characters became schema.
+- **Case-dialect twins.** `part_of` (41) / `PART_OF` (21); `preceded_by` (17) / `PRECEDED_BY` (1); `relates_to` (12) / `related_to` (5). Same semantics, two names, no way for a query to know.
+- **Category confusion.** Relation verbs used as observation kinds — `relates-to` 13, `uses` 11, `implements` 9. Agents had stopped distinguishing edges from properties.
+- **Markdown bleed into predicate names.** The parser accepted `` `RELATED_TO ``, `**Related**:`, `**produced_by**:`, `**delivered_by**:` as relations. Formatting characters became schema.
 
 The v1 audit estimated "~14 invented kinds" — understating by an order of magnitude, a useful reminder that
 sampling a rotting corpus flatters it.
@@ -122,7 +115,7 @@ indexed as knowledge. `projects/PROJECT_MANIFEST.md.bak` sat beside the manifest
 root-level KB note carrying three frontmatter fields.
 
 Note the asymmetry: the legacy corpus had **zero** junk files. Junk was a *current-kb* pathology, introduced
-by the tooling generation meant to be better. Nothing in the indexer had an opinion about what a note is.
+by the tooling generation meant to be better. Nothing in the indexer had an opinion on what a note is.
 
 ### 1.6 Phantom stores and hollow classes — declared, never real
 
@@ -186,16 +179,9 @@ grows without bound.
 
 Not all code gates are equal, and team-kb deliberately uses three, in descending order of preference:
 
-1. **Structurally unrepresentable.** The illegal value cannot be expressed at the API. An
-off-vocabulary predicate is not rejected — it cannot be typed. `Verb` is a C# enum surfacing directly in the
-MCP tool's JSON Schema, so the model *sees the legal values at call time* and has no syntax for anything
-else. This tier kills the ~60-predicate sprawl, the ~120-kind sprawl, the case twins, and the markdown-bleed
-predicates at once.
-2. **Computed, never authored.** The value exists but no author supplies it. Folder paths
-are computed from class; inverse edges are materialized by the server. Whole classes of drift vanish because
-there is no input to drift.
-3. **Validated at commit.** What remains representable and authored is checked by a
-predicate that can reject the write — `NoteValidator`, the smallest tier by design.
+1. **Structurally unrepresentable.** The illegal value cannot be expressed at the API. An off-vocabulary predicate is not rejected — it cannot be typed. `Verb` is a C# enum surfacing directly in the MCP tool's JSON Schema, so the model *sees the legal values at call time* and has no syntax for anything else. This tier kills the ~60-predicate sprawl, the ~120-kind sprawl, the case twins, and the markdown-bleed predicates at once.
+2. **Computed, never authored.** The value exists but no author supplies it. Folder paths are computed from class; inverse edges are materialized by the server. Whole classes of drift vanish because there is no input to drift.
+3. **Validated at commit.** What remains representable and authored is checked by a predicate that can reject the write — `NoteValidator`, the smallest tier by design.
 
 The instinct to cultivate: when writing a rule, ask which tier can enforce it and push as far up as it goes.
 If it cannot reach tier 3 it is not a rule, it is a hope, and hopes go in the notes rather than the
@@ -438,8 +424,7 @@ code; a runbook describing the same check is not. `master-kb` had the runbook.
 
 ## 4. Write-path tactics
 
-The gates are what the write path *checks*. This section is about how the write path is *shaped*, which
-turns out to matter at least as much.
+The gates are what the write path *checks*. How the write path is *shaped* matters at least as much.
 
 ### 4.1 Write ≠ commit: the staged proposal
 
@@ -449,13 +434,12 @@ constitution:
 `propose(note) → validate(C1–C8, I1, I4) → staged → commit`
 
 `VaultStore.Propose` runs the validator and, if clean, persists the note into a `staged` table with a
-proposal ID. `VaultStore.Commit` re-reads the staged JSON, **re-runs validation**, and only then
-materializes the file and its derived edges. A staged belief is not retrievable by default search.
+proposal ID. `VaultStore.Commit` re-reads the staged JSON, **re-runs validation**, and only then materializes
+the file and its derived edges. A staged belief is not retrievable by default search.
 
-The re-validation at commit is not redundancy for its own sake. Between propose and commit the corpus can
-change — another agent can claim the permalink, or delete the note this proposal links to. A gate evaluated
-only at propose time is a gate with a race condition, and a KB written concurrently by multiple agents will
-find that race.
+Re-validation at commit is not redundancy. Between propose and commit the corpus can change — another agent
+claims the permalink, or deletes the note this proposal links to. A gate evaluated only at propose time has
+a race condition, and a KB written concurrently by multiple agents will find it.
 
 ```mermaid
 flowchart TD
@@ -502,76 +486,48 @@ foreach (var (permalink, title) in index.TitlesInClass(note.Class))
 }
 ```
 
-The similarity function is deliberately cheap — normalized trigram Jaccard:
-
-```csharp
-public static double TitleSimilarity(string a, string b)
-{
-    var na = Ontology.NormalizeTitle(a); var nb = Ontology.NormalizeTitle(b);
-    if (na == nb) return 1.0;
-    var ta = Trigrams(na); var tb = Trigrams(nb);
-    if (ta.Count == 0 || tb.Count == 0) return 0.0;
-    var inter = ta.Intersect(tb).Count();
-    return (double)inter / (ta.Count + tb.Count - inter);
-}
-```
-
-Two design notes. First, the scan is scoped to the *same entity class*, which is both semantically right (a
-`Project` named "Atlas" and a `Concept` named "Atlas" are not duplicates) and what keeps an O(n) scan
-affordable. The source carries an explicit ponytail marker acknowledging the naive scan and naming the swap
-— indexed similarity — if a class exceeds ten thousand notes. Recording the known limit beside the code is
-cheaper than rediscovering it under load.
-
-Second, the three offered resolutions — merge, supersede, assert `distinct_from` — are exactly the three
-things that can actually be true. Two notes about one thing should merge; a newer note replacing an older
-one should supersede; two genuinely different things with similar names need an explicit assertion.
-`master-kb` offered a fourth option, the `-1` suffix, which corresponds to none of them.
+`TitleSimilarity` is deliberately cheap — normalized trigram Jaccard over `NormalizeTitle` output, exact
+match short-circuiting to 1.0. Two design notes. The scan is scoped to the *same entity class*, which is
+semantically right (a `Project` "Atlas" and a `Concept` "Atlas" are not duplicates) and keeps an O(n) scan
+affordable; the source carries a ponytail marker naming the swap — indexed similarity — if a class exceeds
+ten thousand notes. And the three offered resolutions (merge, supersede, assert `distinct_from`) are exactly
+the three things that can be true. `master-kb` offered a fourth, the `-1` suffix, which is none of them.
 
 **Test:** `NearDuplicateTitle_TitleCaseVsSlug_Rejected` uses the literal master-kb twin as its fixture and
 accepts either `I4` or `C2` as the rejecting gate.
 
 ### 4.3 Write-time link resolution
 
-Covered as C4 above, but the tactic generalizes beyond links: **resolve at write, not at read.** Any
-reference that is validated lazily will accumulate breakage at exactly the rate the corpus churns, because
-nothing forces the lazy check to ever run. The 862 dangling links were not created dangling; most were
-created valid and *became* dangling when the 2026-08-02 refile moved their targets. Read-time resolution
-never noticed, because nothing reads every link.
-
-The corollary is that destructive operations need the same discipline in reverse: before a move or delete,
-check inbound backlinks and blast radius. Because C5 materializes inverse edges, that query is cheap and
-exact — which is the sense in which the gates compound.
+Covered as C4, but the tactic generalizes: **resolve at write, not at read.** Any lazily validated reference
+accumulates breakage at the rate the corpus churns, because nothing forces the lazy check to run. The 862
+dangling links were not created dangling — most were valid and *became* dangling when the 2026-08-02 refile
+moved their targets, and nothing reads every link. The corollary runs in reverse for destructive operations:
+before a move or delete, check inbound backlinks and blast radius. Because C5 materializes inverse edges,
+that query is cheap and exact — the sense in which the gates compound.
 
 ### 4.4 Closed vocabularies in tool schemas, not in docs
 
-The last write-path tactic is the one that most directly repudiates `master-kb`'s governance folder. The
-legal values for classes, verbs, and observation kinds do not live in `ontology.md` for an agent to read and
-remember. They live in the C# enums that generate the MCP tool's JSON Schema, so they are *in the model's
-context at the moment of the call*.
-
-This matters because of where LLM writers actually fail. They do not fail at obeying rules they can see;
-they fail at recalling rules they read three thousand tokens ago, especially under the pressure of a task
-that is about something else. A vocabulary in a governance document is a memory test administered at the
-worst possible moment. A vocabulary in the tool schema is a menu.
-
-`ontology.md` still exists, and should — humans need the rationale, the migration shims, the absorbed-from
-mappings. But it is documentation *of* the enum, not the definition of it. When they disagree, the enum is
-right, because the enum is what runs.
+The tactic that most directly repudiates `master-kb`'s governance folder: legal values for classes, verbs,
+and observation kinds do not live in `ontology.md` for an agent to read and remember. They live in the C#
+enums that generate the MCP tool's JSON Schema, so they are *in the model's context at the moment of the
+call*. This matters because of where LLM writers actually fail — not at obeying rules they can see, but at
+recalling rules read three thousand tokens ago under the pressure of a task about something else. A
+vocabulary in a governance document is a memory test at the worst possible moment; a vocabulary in the tool
+schema is a menu. `ontology.md` still exists and should — humans need the rationale, the migration shims,
+the absorbed-from mappings — but it is documentation *of* the enum, not the definition. When they disagree,
+the enum wins, because the enum is what runs.
 
 ---
 
 ## 5. Ongoing curation
 
-Write gates prevent new defects. They do nothing about inherited ones, about facts that were true when
-written and are false now, or about invariants that are properties of the whole graph. That work is the
-curation loop, and `maintenance.md` opens with the rule that governs all of it: **every procedure is
-executed by scheduled tooling — cron, hooks, CI — and each run writes its report back into the vault as an
-episode note.**
-
-A report written back into the vault is the difference between a sweep and a runbook. `master-kb` had
-`_governance/playbooks/KB Self-Healing Runbook.md` and a staleness policy promising notes would be attached
-within seven days. Neither ever ran. Nobody could tell, because a procedure that produces no artifact
-produces no evidence of its absence.
+Write gates prevent new defects. They do nothing about inherited ones, facts that were true when written and
+are false now, or invariants that are properties of the whole graph. That is the curation loop, and
+`maintenance.md` opens with the rule governing all of it: **every procedure is executed by scheduled tooling
+— cron, hooks, CI — and each run writes its report back into the vault as an episode note.** That report is
+the difference between a sweep and a runbook. `master-kb` had `_governance/playbooks/KB Self-Healing
+Runbook.md` and a staleness policy promising attachment within seven days; neither ever ran, and nobody
+could tell, because a procedure that produces no artifact produces no evidence of its absence.
 
 ### 5.1 Contradiction handling: typed operators, not ad-hoc judgment
 
@@ -585,47 +541,26 @@ the writer's judgment:
 | Findings / lessons / facts | evidence-weighted | provenance-count + confidence merge; loser audited |
 | Identity claims (who/what) | per-rule + I4 | merge-or-distinguish gate |
 
-Two properties make this work. First, **the losing claim is always preserved** with `t_invalid` stamped in
-an audit block — invalidate, never delete. Combined with the bi-temporal record (`t_valid`, `t_invalid`,
-`t_created`, `t_expired` on every edge and fact-bearing observation), this makes "what did we believe as of
-T?" a first-class query rather than an archaeology project.
-
-Second, `SUPERSEDES` is a real typed verb in P with a computed `SUPERSEDED_BY` inverse, and `CONTRADICTS` is
-system-writable only. `master-kb` recorded a `SUPERSEDE` event in a healing audit and left the superseded
-note in place, because the supersession was a narrative in a note rather than an operator with an effect.
-Here the operator does something.
+Two properties make this work. **The losing claim is always preserved** with `t_invalid` stamped in an audit
+block — invalidate, never delete; combined with the bi-temporal record (`t_valid`, `t_invalid`, `t_created`,
+`t_expired` on every edge and fact-bearing observation), "what did we believe as of T?" becomes a
+first-class query rather than archaeology. And `SUPERSEDES` is a real typed verb in P with a computed
+`SUPERSEDED_BY` inverse, while `CONTRADICTS` is system-writable only. `master-kb` recorded a `SUPERSEDE` in
+a healing audit and left the superseded note in place, because supersession was narrative rather than an
+operator with an effect. Here the operator does something.
 
 ### 5.2 The sweep cadences
 
 `maintenance.md` defines the loops. Their most interesting property is how much of the sweeper's classic
 workload the write gates have already eliminated:
 
-- **Nightly consolidation** (Consolidator, sleep-time compute). Episodes since the last run
-are clustered and folded into playbooks as *append-only delta bullets* — never a wholesale rewrite, which is
-the ACE discipline for avoiding brevity bias and context collapse. Episodic→semantic promotions go through
-the same staged commit as any other write.
-- **Weekly sweep** (Sweeper). Four of its five jobs are now verification rather than repair:
-staleness applies per-class half-life decay to effective confidence (`Concept` 365d,
-`Person`/`Org`/`Artifact` 180d, `Project`/`Agent` 90d, `Codebase`/`Technology` 60d, `Event`/`Decision` never
-— they are immutable); utility decay ages MemRL uses/wins/losses and queues dead weight for archive;
-**orphans are impossible to create under I1**, so the sweep handles only inherited and edge cases; **junk is
-unindexable under C7**, so the sweep verifies and reports; **broken links are impossible under C4**, so the
-sweep is belt-and-suspenders.
-- **Retrieval-miss replay** (weekly, SAGE loop). Searches that returned `absent` or
-`low_confidence` but that a human later resolved become a repair batch — missing links, missing aliases,
-extraction fixes. This is the only loop that learns from what the KB *failed* to answer, which makes it the
-only one that can find gaps rather than defects.
-- **Usage reweighting** (continuous). Retrievals that helped bump edge weight and note
-utility, feeding personalized-PageRank ranking, hub selection, and decay.
-- **Quarterly schema re-induction** (Ontologist). Induce a schema from the corpus, diff it
-against T/P/K, emit KGCL evolution proposals with reverse patches. **Never auto-applied** — invariant I3
-requires a human gate on any vocabulary change.
-- **Hub regeneration** (weekly, Librarian). Community detection over the link graph rebuilds
-`hubs/`; the report carries class cardinality (C8), degree Gini (the bulk-load signature), and component
-count.
-- **Session hooks.** `sessionStart` primes with a constitution digest; `postWrite`
-auto-reindexes; `preCompact` snapshots the session into an episode note; CI runs shapes validation and the
-I2 non-regression gate.
+- **Nightly consolidation** (Consolidator, sleep-time compute). Episodes since the last run are clustered and folded into playbooks as *append-only delta bullets* — never a wholesale rewrite, which is the ACE discipline for avoiding brevity bias and context collapse. Episodic→semantic promotions go through the same staged commit as any other write.
+- **Weekly sweep** (Sweeper). Four of its five jobs are now verification rather than repair: staleness applies per-class half-life decay to effective confidence (`Concept` 365d, `Person`/`Org`/`Artifact` 180d, `Project`/`Agent` 90d, `Codebase`/`Technology` 60d, `Event`/`Decision` never — they are immutable); utility decay ages MemRL uses/wins/losses and queues dead weight for archive; **orphans are impossible to create under I1**, so the sweep handles only inherited and edge cases; **junk is unindexable under C7**, so the sweep verifies and reports; **broken links are impossible under C4**, so the sweep is belt-and-suspenders.
+- **Retrieval-miss replay** (weekly, SAGE loop). Searches that returned `absent` or `low_confidence` but that a human later resolved become a repair batch — missing links, missing aliases, extraction fixes. This is the only loop that learns from what the KB *failed* to answer, which makes it the only one that can find gaps rather than defects.
+- **Usage reweighting** (continuous). Retrievals that helped bump edge weight and note utility, feeding personalized-PageRank ranking, hub selection, and decay.
+- **Quarterly schema re-induction** (Ontologist). Induce a schema from the corpus, diff it against T/P/K, emit KGCL evolution proposals with reverse patches. **Never auto-applied** — invariant I3 requires a human gate on any vocabulary change.
+- **Hub regeneration** (weekly, Librarian). Community detection over the link graph rebuilds `hubs/`; the report carries class cardinality (C8), degree Gini (the bulk-load signature), and component count.
+- **Session hooks.** `sessionStart` primes with a constitution digest; `postWrite` auto-reindexes; `preCompact` snapshots the session into an episode note; CI runs shapes validation and the I2 non-regression gate.
 
 Two invariants tie the loops to the doctrine. **I1** requires `orphans(G_{t+1}) ≤ orphans(G_t)` —
 connectivity is monotone. **I2** requires `violations(G_{t+1}) ≤ violations(G_t)` over the shapes graph,
@@ -634,10 +569,10 @@ claim you can actually enforce against an inherited mess.
 
 ### 5.3 Anchor protection
 
-One rule exists to protect curation from itself. `_meta/**` and any note tagged `status/anchor` are **exempt
-from automated consolidation edits** — the FadeMem identity-drift guard. A consolidator that can rewrite the
-constitution can rewrite the definition of correctness, and a system that decays its own axioms is worse
-than one with no consolidation at all. Only humans and KGCL-gated evolution ops touch those files.
+One rule protects curation from itself. `_meta/**` and any note tagged `status/anchor` are **exempt from
+automated consolidation edits** — the FadeMem identity-drift guard. A consolidator that can rewrite the
+constitution can rewrite the definition of correctness; a system that decays its own axioms is worse than
+one with no consolidation. Only humans and KGCL-gated evolution ops touch those files.
 
 ### 5.4 Defect-replay testing as the acceptance discipline
 
@@ -646,44 +581,33 @@ inventory, replayed. `GateTests` documents itself in exactly those terms: *each 
 failure classes, replayed against the new write path. Every test asserts the defect is REJECTED (or
 unrepresentable). Fixtures mirror real defects found in the 2026-08-11 audit.*
 
-The fixtures are literal. The near-duplicate test uses "Agent Specialist- Color Theory" because that note
-exists. The scope test uses `conflict-files-obsidian-git.md` because that file was committed to a real KB.
-The tests are indexed by post-mortem countermeasure number in their comments — `// #1 gates-were-prose`, `//
-#2 free-text wikilinks`, `// #5 no dedup on create` — so the mapping from measured failure to enforced gate
-to passing test is traceable end to end.
+The fixtures are literal: the near-duplicate test uses "Agent Specialist- Color Theory" because that note
+exists; the scope test uses `conflict-files-obsidian-git.md` because that file was committed to a real KB.
+Tests are indexed by countermeasure number in their comments (`// #1 gates-were-prose`, `// #2 free-text
+wikilinks`, `// #5 no dedup on create`), so measured failure → enforced gate → passing test is traceable.
 
 **This paid out immediately.** On the first cross-platform bring-up run, the suite caught **two genuine
 bugs** — not regressions in hypothetical code, but real defects in the freshly written implementation:
 
-1. **The scope-regex anchor.** The first C7 predicate anchored its junk markers to the end
-of the filename. It correctly rejected `note.md.bak` and correctly accepted `note.md` — and silently
-admitted `note.bak.md` and `conflict-files-obsidian-git.md`, which is to say, it admitted the *exact file
-that was found in master-kb*. The `[Theory]` case list, drawn from real filenames rather than imagined ones,
-failed on the case that mattered. The fix made the markers unanchored, and the reasoning is now a source
-comment so the next person does not "tidy" it back.
-2. **FTS5 token quoting.** SQLite's FTS5 treats `-`, `:`, and similar characters as query
-syntax — a search for `a-b` is parsed as a column filter, not a phrase. Hyphenated queries silently returned
-wrong results rather than erroring. Since every permalink in this system is kebab-case by construction (C2),
-this was a defect on the primary search path. The fix quotes each token; `VaultStore.Search` carries the
-explanation inline.
+1. **The scope-regex anchor.** The first C7 predicate anchored its junk markers to the end of the filename. It correctly rejected `note.md.bak` and correctly accepted `note.md` — and silently admitted `note.bak.md` and `conflict-files-obsidian-git.md`, which is to say, it admitted the *exact file that was found in master-kb*. The `[Theory]` case list, drawn from real filenames rather than imagined ones, failed on the case that mattered. The fix made the markers unanchored, and the reasoning is now a source comment so the next person does not "tidy" it back.
+2. **FTS5 token quoting.** SQLite's FTS5 treats `-`, `:`, and similar characters as query syntax — a search for `a-b` is parsed as a column filter, not a phrase. Hyphenated queries silently returned wrong results rather than erroring. Since every permalink in this system is kebab-case by construction (C2), this was a defect on the primary search path. The fix quotes each token; `VaultStore.Search` carries the explanation inline.
 
-A third class of defect surfaced in the same bring-up but sits outside the replay suite: Windows SQLite file
-locking during pool teardown, alongside AppleDouble pollution and shell-quoting corruption. That is a
-*platform* bug class, not a *defect-replay* one, and the insight recorded from it is separate: budget one
-bring-up pass per platform, and never claim "verified" from source-reading alone.
+A third defect class surfaced in the same bring-up but sits outside the replay suite: Windows SQLite file
+locking during pool teardown, plus AppleDouble pollution and shell-quoting corruption. That is a *platform*
+bug class, not a *defect-replay* one, and its recorded insight is separate — budget one bring-up pass per
+platform, and never claim "verified" from source-reading alone.
 
-The generalizable lesson, recorded in `INSTRUCTIONAL_INSIGHTS.md`: **grow tests from the defect inventory,
-not from imagination.** Imagined tests confirm that code does what its author thought. Replayed defects
-confirm that code does what the corpus needs. The two bugs found on first run were both cases where the
-author's model was right and the corpus was righter.
+The lesson, recorded in `INSTRUCTIONAL_INSIGHTS.md`: **grow tests from the defect inventory, not from
+imagination.** Imagined tests confirm code does what its author thought; replayed defects confirm it does
+what the corpus needs.
 
 ---
 
 ## 6. Curation roles: who owns which tactic
 
-M0 through M3 deliver the write path and its gates as library and MCP server code. M4 delivers the
-specialist agents — Microsoft Agent Framework agents exposed as MCP tools — that own the loops a write gate
-cannot. The division below is the planned allocation.
+M0–M3 deliver the write path and its gates as library and MCP server code. M4 delivers the specialist
+agents — Microsoft Agent Framework (MAF) agents exposed as MCP tools — that own the loops a write gate
+cannot. The planned allocation:
 
 | Agent | Owns | Tactics from this paper | Enforces |
 |---|---|---|---|
@@ -695,51 +619,27 @@ cannot. The division below is the planned allocation.
 | **Librarian** | Hub and community structure. | §5.2 weekly hub regeneration; class cardinality, degree Gini, component count | C8 reporting |
 | **Code-Cartographer** | The jcodemunch mirror: indexes team codebases, links code symbols to knowledge notes. | Keeps `Codebase` and `Technology` classes non-vacuous with real, current content | C8 by population rather than by flag |
 
-Two boundaries in that table deserve emphasis, because both encode a lesson from the post-mortem.
-
-**The Ontologist proposes; it never applies.** Invariant I3 requires that T, P, and K change only through
-KGCL ops carrying a reverse patch, with a human gate. `master-kb`'s vocabulary reached ~120 observation
-kinds through a sequence of individually reasonable local extensions, none of which was ever reviewed as a
-schema change. An agent authorized to extend the vocabulary autonomously will rebuild that outcome
-regardless of how carefully it is prompted, because each individual extension really is locally reasonable.
-
-**The Consolidator is the most powerful agent and gets the tightest leash.** It rewrites notes by design.
-§5.3 anchor protection is what keeps that power from reaching `_meta/**` and the notes tagged
-`status/anchor`. The agent that improves the knowledge base must not be able to edit the definition of
-improvement.
+Two boundaries in that table encode post-mortem lessons. **The Ontologist proposes; it never applies** —
+I3 requires T, P, K to change only through KGCL ops with a reverse patch and a human gate. `master-kb`
+reached ~120 observation kinds through individually reasonable local extensions, none reviewed as a schema
+change; an agent authorized to extend vocabulary autonomously rebuilds that outcome no matter how carefully
+it is prompted. **The Consolidator is the most powerful agent and gets the tightest leash** — it rewrites
+notes by design, and §5.3 anchor protection is what keeps that power off `_meta/**` and `status/anchor`.
+The agent that improves the knowledge base must not be able to edit the definition of improvement.
 
 ---
 
 ## 7. What to take away
 
-If this paper compresses to a single page, it is this:
-
-1. **Measure before you rebuild.** The two audits are the reason team-kb's gate list is
-eight items and not thirty. Every gate exists because a specific defect was counted. The v1 audit's "~14
-invented kinds" versus the v2 audit's ~120 shows that sampling a rotting corpus flatters it — census where
-you can.
-2. **Prose gates fail statistically, not occasionally.** At any per-write compliance below
-1.0, violations are certain at corpus scale. 0.99¹⁰⁰⁰ ≈ 0.004%. This is arithmetic, not pessimism about
-writers.
-3. **Push every rule to the highest enforcement tier it will reach.** Unrepresentable beats
-computed beats validated beats documented. Most of team-kb's constitution never reaches the validator, and
-that is the design working.
-4. **Make the vocabulary small enough to hold and then put it in the tool schema anyway.**
-10 classes, 14 verbs, 12 kinds, all visible at call time. Writers invent when they cannot recall.
-5. **Resolve at write, not at read.** Links, identity, signatures. A lazy check is a check
-that never runs.
-6. **Compute what you would otherwise ask authors to maintain.** Paths from class, inverses
-from direction. Authored reciprocity is abolished, and with it the largest single breakage class in the old
-KB.
-7. **A scheduled job that writes a report is code; a runbook is not.** `master-kb` had the
-self-healing runbook, the staleness policy, and the seven-day attach promise. None of them ran, and nothing
-recorded that they hadn't.
-8. **Replay real defects as your acceptance suite.** Two genuine bugs on first run — the
-unanchored scope regex and FTS5 hyphen quoting — both caught by fixtures drawn from files that actually
-existed in a real KB.
-9. **Guard the guards.** Anchor protection and the human gate on schema evolution exist
-because a self-improving system that can edit its own axioms will drift faster than one that cannot improve
-at all.
+1. **Measure before you rebuild.** The two audits are the reason team-kb's gate list is eight items and not thirty. Every gate exists because a specific defect was counted. The v1 audit's "~14 invented kinds" versus the v2 audit's ~120 shows that sampling a rotting corpus flatters it — census where you can.
+2. **Prose gates fail statistically, not occasionally.** At any per-write compliance below 1.0, violations are certain at corpus scale. 0.99¹⁰⁰⁰ ≈ 0.004%. This is arithmetic, not pessimism about writers.
+3. **Push every rule to the highest enforcement tier it will reach.** Unrepresentable beats computed beats validated beats documented. Most of team-kb's constitution never reaches the validator, and that is the design working.
+4. **Make the vocabulary small enough to hold and then put it in the tool schema anyway.** 10 classes, 14 verbs, 12 kinds, all visible at call time. Writers invent when they cannot recall.
+5. **Resolve at write, not at read.** Links, identity, signatures. A lazy check is a check that never runs.
+6. **Compute what you would otherwise ask authors to maintain.** Paths from class, inverses from direction. Authored reciprocity is abolished, and with it the largest single breakage class in the old KB.
+7. **A scheduled job that writes a report is code; a runbook is not.** `master-kb` had the self-healing runbook, the staleness policy, and the seven-day attach promise. None of them ran, and nothing recorded that they hadn't.
+8. **Replay real defects as your acceptance suite.** Two genuine bugs on first run — the unanchored scope regex and FTS5 hyphen quoting — both caught by fixtures drawn from files that actually existed in a real KB.
+9. **Guard the guards.** Anchor protection and the human gate on schema evolution exist because a self-improving system that can edit its own axioms will drift faster than one that cannot improve at all.
 
 The audits' closing line is the right one to end on. A rewrite that puts T, P, and K into tool-schema enums
 and computes inverses and paths server-side makes most of the failure inventory **structurally

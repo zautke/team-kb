@@ -2,6 +2,9 @@
 title: "The Stratified Memory Organism — team-kb's Memory Model"
 date: 2026-08-11
 type: whitepaper
+tags:
+  - kb/whitepaper
+  - kb/topic/memory
 status: active
 kb_version: "1.0.0"
 authors:
@@ -70,20 +73,18 @@ policy vacuum across 653 legacy notes:
 The verdict line from that report is the one worth carrying: *"the graph was never a graph, it was
 a folder of documents with decorative links."*
 
-Two lessons follow, and both are load-bearing for everything below.
+Two lessons follow, both load-bearing for everything below.
 
 **First, unbounded accumulation is not neutral.** A store that only grows does not merely get
 bigger; it gets *worse* at its job. Every stale note is a competing retrieval candidate, every
-abandoned link is a false path, and every one of those 120 singleton observation kinds is a
-vocabulary an agent must hold in its head to write compliantly. The cost of accumulation is paid
-at read time, forever, by everyone.
+abandoned link a false path, every singleton observation kind a vocabulary an agent must hold in
+its head to write compliantly. The cost of accumulation is paid at read time, forever, by everyone.
 
-**Second, a rule that isn't code isn't a rule.** master-kb's substrate (basic-memory) *shipped* a
-machine-checkable gate — Picoschema plus a `validation: error` setting. Zero schema notes were ever
-declared. The root cause is not "no gate existed" but "the gate shipped and was never switched on."
-Accordingly, the constitution states plainly: *a rule that is not enforced by code does not belong
-in this file*. The memory model in this paper is written to the same standard. Where a policy is
-not yet executable, this paper says which milestone owes it rather than pretending prose is
+**Second, a rule that isn't code isn't a rule.** basic-memory *shipped* a machine-checkable gate —
+Picoschema plus `validation: error`. Zero schema notes were ever declared. The root cause is not
+"no gate existed" but "the gate shipped and was never switched on." Hence the constitution's
+clause: *a rule that is not enforced by code does not belong in this file*. Where a policy below is
+not yet executable, this paper names the milestone that owes it rather than pretending prose is
 enforcement.
 
 ---
@@ -138,37 +139,31 @@ team-kb-vault/
 | Procedural-cold | `procedures/` | Consolidated skill | verification gate | on-demand by name | usage-based |
 | Hierarchical | `hubs/` | Schema / index structure | curator-regenerated only | entry points, progressive disclosure | rebuilt, not decayed |
 
-Two tiers are deliberate additions beyond the psychological four.
+Two tiers are deliberate additions beyond the psychological four. `procedures/` splits procedural
+memory into hot and cold because the two behave differently under retrieval: a domain cheatsheet is
+loaded *unconditionally* at task start — Dynamic Cheatsheet (arXiv:2504.07952) took GPT-4o from 10%
+to 99% on Game-of-24 that way, with no labels and no weight updates — whereas a named parameterized
+procedure is loaded *on demand* when a task matches it (the AWM pattern, arXiv:2409.07429). Merging
+them would either bloat the always-loaded context or bury the cheatsheet behind a search. `hubs/`
+has no clean psychological analogue; it exists because a graph with thousands of nodes needs entry
+points, and community detection computes them better than a human maintains them. Hub notes are
+derived artifacts: rebuilt, never decayed, never hand-edited.
 
-`procedures/` splits procedural memory into hot and cold because the two behave differently under
-retrieval. A domain cheatsheet is loaded *unconditionally* at task start — it is what Dynamic
-Cheatsheet (arXiv:2504.07952) showed can take GPT-4o from 10% to 99% on Game-of-24 with no labels
-and no weight updates. A named parameterized procedure is loaded *on demand*, by name, when a task
-matches it — the AWM pattern (arXiv:2409.07429). Merging them would either bloat the always-loaded
-context or bury the cheatsheet behind a search.
-
-`hubs/` has no clean psychological analogue; it is closest to schema-level organizing structure.
-Operationally it exists because a graph with thousands of nodes needs entry points, and community
-detection can compute them better than a human can maintain them. Hub notes are *derived
-artifacts*: they are rebuilt, never decayed, and never hand-edited.
-
-The critical property of the whole table is that **the three policy columns are not independently
-configurable.** Choosing a tier chooses all three. This is the single largest simplification the
-model buys, and the reason it can be enforced in code: the server computes a note's folder from its
-entity class (`Ontology.PathFor`, constraint C1) and authors never supply a path. There is no
-opportunity to file something in the wrong stratum, because filing is not a user-facing operation.
+The critical property of the table is that **the three policy columns are not independently
+configurable.** Choosing a tier chooses all three. That is the largest simplification the model
+buys and the reason it can be enforced in code: the server computes a note's folder from its entity
+class (`Ontology.PathFor`, constraint C1) and authors never supply a path. Nothing can be filed in
+the wrong stratum, because filing is not a user-facing operation.
 
 ### 3.3 The anchor exemption
 
 One class of content sits outside the organism entirely. `_meta/**` and any note tagged
-`status/anchor` are **exempt from all automated consolidation edits**. Only a human, or a
-KGCL-typed evolution operation with a reverse patch, may alter them.
-
-This is the identity-drift guard from *Episodic-to-Semantic Consolidation Without Identity Drift*
-(arXiv:2607.01988). The failure mode it prevents is subtle and severe: a consolidator that is
-allowed to rewrite the document defining what the system *is* will, over enough iterations, drift
-that definition toward whatever it has recently been reading. The constitution must not be
-summarizable by the summarizer.
+`status/anchor` are **exempt from all automated consolidation edits**; only a human, or a
+KGCL-typed evolution op carrying a reverse patch, may alter them. This is the identity-drift guard
+from *Consolidation Without Identity Drift* (arXiv:2607.01988), and the failure mode it prevents is
+severe: a consolidator allowed to rewrite the document defining what the system *is* will, over
+enough iterations, drift that definition toward whatever it has recently been reading. The
+constitution must not be summarizable by the summarizer.
 
 ---
 
@@ -243,27 +238,20 @@ flowchart TD
         B -->|no| D["Session journal only"]
         D --> E["inbox/ — working memory<br/>excluded from retrieval"]
     end
-
     C --> F["episodes/<br/>append-only trace"]
     E -->|"session end:<br/>promote or discard"| F
-
     subgraph nightly["Nightly — Consolidator daemon (M3)"]
         F --> G["1. Dedup<br/>cluster by similarity + shared entities"]
         G --> H["2. Abstraction<br/>episodic → decontextualized claim"]
         H --> I["3. Linking<br/>resolve edges + retro-update neighbours"]
         I --> J["ACE delta bullets<br/>append-only, never full rewrite"]
     end
-
     J --> K["propose → gates C1-C8, I1, I4 → commit"]
     K --> L["knowledge/<br/>SEMANTIC"]
     K --> M["playbooks/<br/>PROCEDURAL-hot"]
-
     M -->|"recurs ≥3× AND<br/>passes verification"| N["procedures/<br/>verified: true"]
-
     L --> O["hubs/<br/>rebuilt by community detection"]
-
     P["_meta/ + status/anchor"] -.->|"EXEMPT — identity-drift guard"| nightly
-
     style P fill:#3a2f1a,stroke:#c9a227,color:#f0e6d2
     style F fill:#1a2f3a,stroke:#4a90a4,color:#e0f0f5
     style L fill:#1a3a2a,stroke:#4aa46a,color:#e0f5e8
@@ -381,66 +369,43 @@ survives here.
 
 ### 5.5 Promotion and demotion rules
 
-Movement between tiers is not free-form. Each transition has a trigger, a gate, and an audit
-record.
+Movement between tiers is not free-form. Each transition has a trigger, a gate, and an audit record.
 
-**Working → Episodic.** Trigger: session end, or pre-compaction. Gate: scope and provenance only.
-Anything in `inbox/` at session end is either promoted to an episode or discarded. Working memory
-does not persist across sessions by design — that is what makes it working memory.
+| Transition | Trigger | Gate | Effect |
+|---|---|---|---|
+| Working → Episodic | session end / pre-compaction | scope + provenance only | `inbox/` content is promoted or discarded; working memory never persists across sessions |
+| Episodic → Semantic | nightly cluster of ≥2 episodes supporting one abstractable claim | full staged path (C1–C8, I1, I4) | episodes are **not** consumed — they remain as provenance |
+| Semantic → Procedural-hot | an actionable rule consolidation has touched repeatedly | ACE delta-bullet append | cheap, reversible |
+| Procedural-hot → cold | pattern recurrence ≥3 | **verification** — a check that actually runs | `verified: true`; strictest gate in the system |
+| Any → Hierarchical | weekly community detection | curator-owned | not a promotion; `hubs/` is regenerated, nothing moves into it |
+| Semantic → Archived | $U(v) < \theta_{\text{archive}}$ at weekly sweep | never applies to `_meta/` or `status/anchor` | status change; file and edges retained |
+| Semantic → Deprecated | `SUPERSEDES` edge or contradiction loss | operator table (§6.2) | `t_invalid` stamped; loser preserved in an audit block |
 
-**Episodic → Semantic.** Trigger: nightly consolidation finds a cluster of $\geq 2$ episodes
-supporting one abstractable claim. Gate: the full staged write path (C1–C8, I1, I4). The episodes
-are *not* consumed — they remain in `episodes/` as the promoted note's provenance.
-
-**Semantic → Procedural-hot.** Trigger: a claim expressed as an actionable rule that consolidation
-has touched repeatedly. Gate: ACE delta-bullet append into the relevant domain playbook. Cheap and
-reversible.
-
-**Procedural-hot → Procedural-cold.** Trigger: pattern recurrence $\geq 3$. Gate: **verification** —
-a real check that actually runs. `verified: true` is not a label an author may set; the curator
-refuses unverified promotion. This is the strictest gate in the system, and correctly so: a
-`procedures/` note is something the team will execute.
-
-**Any → Hierarchical.** Not a promotion. `hubs/` notes are regenerated weekly from community
-detection over the link graph. Nothing is *moved* into `hubs/`.
-
-**Semantic → Archive.** Trigger: $U(v) < \theta_{\text{archive}}$ at weekly sweep. Gate: never
-applies to `_meta/` or `status/anchor` notes. Effect: status change to `archived`, exclusion from
-default retrieval, retention of the file and all its edges.
-
-**Semantic → Deprecated.** Trigger: an explicit `SUPERSEDES` edge, or contradiction resolution.
-The loser gets `t_invalid` stamped and is preserved in an audit block. This is Graphiti's
-invalidate-never-delete rule (arXiv:2501.13956), and it is unanimous across every system surveyed
-in the R1 dossier.
+The last row is Graphiti's invalidate-never-delete rule (arXiv:2501.13956) — unanimous across every
+system surveyed in the R1 dossier.
 
 ```mermaid
 stateDiagram-v2
     direction LR
-
     [*] --> Working: agent capture
     Working --> Episodic: session end<br/>(scope + provenance gate)
     Working --> [*]: discard
-
     Episodic --> Semantic: nightly consolidation<br/>cluster ≥2 + full gate set
     Semantic --> ProcHot: actionable rule<br/>ACE delta bullet
     ProcHot --> ProcCold: recurs ≥3× AND verified<br/>(Voyager gate)
-
     Semantic --> Tentative: c_eff < 0.3
     Tentative --> Semantic: re-use restores recency
     Semantic --> Archived: U < 0.15 (weekly sweep)
     Archived --> Semantic: retrieval hit revives
     Semantic --> Deprecated: SUPERSEDES edge<br/>or contradiction loss
-
     Deprecated --> [*]: tombstone retained<br/>file never deleted
     Archived --> [*]: tombstone retained
-
     note right of Deprecated
         t_invalid stamped.
         Losing claim preserved
         in audit block.
         Nothing is erased.
     end note
-
     note left of Working
         _meta/ and status/anchor
         never enter this machine.
@@ -547,18 +512,16 @@ with $k = 60$ (the standard RRF constant) and $\pi$ the tier prior:
 | `inbox/` | 0.0 | Excluded |
 
 The $\pi = 0.6$ on episodes deserves defending. Episodes are *more* specific and *more* evidenced
-than the semantic notes derived from them — so why rank them lower? Because specificity is
-precisely the problem at retrieval time. A query about migration locking should surface the general
-rule, with the three incidents that produced it available as provenance one hop away. Surfacing
-the three incidents directly gives the reader the raw material and makes them redo the abstraction
-the consolidator already did. The $U(v,t)$ multiplier then does the rest: within the episodic tier,
-recent and frequently-consulted episodes still outrank ancient ones.
+than the semantic notes derived from them — so why rank them lower? Because specificity is exactly
+the problem at retrieval time. A query about migration locking should surface the general rule,
+with the three incidents that produced it one hop away as provenance; surfacing the incidents
+directly hands the reader raw material and makes them redo the abstraction the consolidator already
+did. Within the tier, $U(v,t)$ still puts recent and frequently-consulted episodes on top.
 
-Note that $U$ appears in the retrieval score *and* in the retention decision. This closes the loop:
-a note that ranks well gets retrieved, retrieval updates `uses`/`last_used`, and those updates
-raise $U$, which raises its rank. That is a self-reinforcing cycle, and the $\gamma \cdot C(v)$
-centrality term plus the archival threshold are the damping that keeps it from collapsing onto a
-handful of perennial favourites.
+Note that $U$ appears in the retrieval score *and* the retention decision, which closes the loop: a
+note that ranks well gets retrieved, retrieval raises `uses`/`last_used`, and that raises $U$ and
+its rank. The $\gamma \cdot C(v)$ term plus the archival threshold are the damping that keeps the
+cycle from collapsing onto a handful of perennial favourites.
 
 ### 7.2 The verdict contract as honest-memory signalling
 
@@ -572,57 +535,41 @@ jcodemunch's honesty contract and is already live in `KbTools.SearchNotes`:
 | `absent` / `not_found` | **No implementation of this knowledge exists** | Report the gap. Do **not** re-search with synonyms |
 | `degraded` | Index stale or a channel unavailable | Results usable but incomplete; flag it |
 
-The `not_found` verdict is the one that matters, and it is the reason the contract exists. Its
-purpose is to make *absence* a first-class, trustworthy answer.
+The `not_found` verdict is the reason the contract exists: it makes *absence* a first-class,
+trustworthy answer. Consider the alternative. A search returns the empty set, or three weak
+matches. Without a verdict, an agent's rational move is to retry with different words, again and
+again, because it cannot distinguish "the corpus doesn't cover this" from "I phrased it badly."
+Each retry costs tokens, and the terminal failure is worse than the cost: the agent eventually
+latches onto a tangentially-related note and treats it as an answer. A memory that says "I don't
+know" reliably is more useful than one that always returns its top three rows — the verdict
+converts a ranked list into a claim about *coverage*, and coverage claims are what let a downstream
+agent choose between using memory and writing to it.
 
-Consider the alternative. A search returns the empty set, or three weakly-matching notes. Without
-a verdict, an agent's rational move is to try again with different words, and again, and again —
-because it cannot distinguish "the corpus doesn't cover this" from "I phrased it badly." Every one
-of those retries costs tokens, and the terminal failure mode is worse than the cost: the agent
-eventually latches onto a tangentially-related note and treats it as an answer. The post-mortem's
-guidance is explicit — a `not_found` means the knowledge does not exist; report the gap, do not
-assume a neighbouring file implements it.
-
-A memory that says "I don't know" reliably is more useful than one that always returns its top
-three rows. The verdict contract is what converts a ranked list into a claim about coverage, and
-coverage claims are what let a downstream agent decide between *using* memory and *writing* to it.
-
-The signal also feeds back. Every retrieval logs hit or miss. `absent` and `low_confidence`
-verdicts that a human later resolved become the input to the weekly **retrieval-miss replay** — the
-SAGE loop (arXiv:2605.12061), where a failed retrieval becomes a repair instruction for extraction.
-Missing links get added, aliases get registered, extraction gets fixed. The reader teaches the
-writer.
+The signal feeds back. Every retrieval logs hit or miss; `not_found` and `partial` verdicts that a
+human later resolved become input to the weekly **retrieval-miss replay** — the SAGE loop
+(arXiv:2605.12061), where a failed retrieval becomes a repair instruction for extraction. Missing
+links get added, aliases registered, extraction fixed. The reader teaches the writer.
 
 ```mermaid
 flowchart LR
-    Q["Query"] --> P0["playbooks/<br/>π = 1.5<br/>loaded pre-query"]
-    P0 --> P1["procedures/<br/>π = 1.3<br/>matched by name"]
+    Q["Query"] --> P0["playbooks/ π=1.5<br/>loaded pre-query"]
+    P0 --> P1["procedures/ π=1.3<br/>matched by name"]
     P1 --> RRF
-
-    subgraph RRF["RRF fusion — knowledge/ π = 1.0"]
+    subgraph RRF["RRF fusion — knowledge/ π=1.0"]
         direction TB
         F1["FTS5 / BM25"]
         F2["vector (M1)"]
         F3["PPR link-walk (M2)"]
     end
-
-    RRF --> EP["episodes/<br/>π = 0.6<br/>provenance + temporal"]
+    RRF --> EP["episodes/ π=0.6<br/>provenance + temporal"]
     RRF --> V{"verdict"}
     EP --> V
-
-    V -->|"ok"| U1["use results"]
-    V -->|"partial"| U2["examine critically"]
+    V -->|"ok / partial"| LOG["log hit → uses++, last_used, wins++"]
     V -->|"not_found"| U3["report the gap<br/>DO NOT re-search"]
-
-    U1 --> LOG["log hit → uses++, last_used, wins++"]
-    U2 --> LOG
     U3 --> MISS["log miss"]
-
     LOG --> UT["U(v,t) updated<br/>→ ranking + retention"]
-    MISS --> SAGE["weekly retrieval-miss replay<br/>links, aliases, extraction repair"]
-
-    IN["inbox/ — π = 0.0"] -.->|"never reached"| Q
-
+    MISS --> SAGE["weekly miss replay<br/>links, aliases, extraction repair"]
+    IN["inbox/ — π=0.0"] -.->|"never reached"| Q
     style U3 fill:#3a1f1f,stroke:#a44a4a,color:#f5e0e0
     style IN fill:#2a2a2a,stroke:#666,color:#999
     style UT fill:#1a3a2a,stroke:#4aa46a,color:#e0f5e8
@@ -680,19 +627,12 @@ PageRank for both the retrieval channel and the $C(v)$ centrality term, communit
 driving `hubs/` regeneration, and the class-cardinality / degree-Gini / component-count metrics job
 that enforces C8.
 
-**M3 — Self-learning.** This milestone owes most of §4 and §5.
-
-- Consolidator daemon: nightly, cluster → abstract → link, emitting ACE delta bullets through the
-  ordinary `Propose`/`Commit` path.
-- Utility scoring: the frontmatter fields `uses`, `wins`, `losses`, `last_used` maintained by the
-  server on retrieval feedback, and $U(v,t)$ computed at sweep time.
-- Decay sweep: weekly, applying $\theta_{\text{archive}}$, $\theta_{\text{floor}}$, and the
-  `_meta`/anchor exemption.
-- Contradiction operators: the four-row table from `maintenance.md` as executable policy, stamping
-  `t_invalid` and writing audit blocks.
-- Retrieval-miss replay: the SAGE repair batch.
-
-Schema and tool sketches:
+**M3 — Self-learning.** Owes most of §4 and §5: the nightly Consolidator (cluster → abstract →
+link, emitting ACE deltas through `Propose`/`Commit`); utility scoring (`uses`/`wins`/`losses`/
+`last_used` maintained server-side, $U(v,t)$ computed at sweep time); the weekly decay sweep
+applying $\theta_{\text{archive}}$, $\theta_{\text{floor}}$ and the anchor exemption; the
+contradiction operators stamping `t_invalid` and writing audit blocks; and the SAGE miss-replay
+batch. Schema and tool sketches:
 
 ```sql
 -- episodic index with consolidation bookkeeping
@@ -733,36 +673,29 @@ producing KGCL proposals behind a human gate).
 ### 8.3 What the model deliberately does not do in v1
 
 Utility weights ($\alpha, \beta, \gamma$) are hand-tuned, not learned. MemRL learns them from
-outcome feedback, and that is the correct end state — but learning requires a feedback corpus that
-does not exist yet, and a learned score on ten data points is worse than a legible constant.
-Revisit once the utility table has real traffic.
-
-The HAGE four-view edge decomposition (semantic / temporal / causal / entity) is not implemented.
-The 14-verb ontology already carries most of the distinction — `CAUSES` is a causal edge,
-`PRECEDES` a temporal one — and a second orthogonal typing axis is complexity without a present
-customer.
-
-There is no learned retrieval router. `plan_turn`'s confidence-to-read-budget mapping (M1) is a
-lookup table, and that is sufficient.
+outcome feedback and that is the correct end state, but learning needs a feedback corpus that does
+not exist yet, and a learned score on ten data points is worse than a legible constant. The HAGE
+four-view edge decomposition (semantic / temporal / causal / entity) is not implemented: the
+14-verb ontology already carries most of the distinction — `CAUSES` is causal, `PRECEDES` temporal
+— and a second orthogonal typing axis is complexity without a present customer. There is no learned
+retrieval router; `plan_turn`'s confidence-to-read-budget mapping is a lookup table, which suffices.
 
 ---
 
 ## 9. Closing
 
 The Stratified Memory Organism is one idea applied consistently: **location is policy**. A folder
-in team-kb is a declaration about how a note will be written, ranked, and forgotten, and because
-the server computes that folder from the note's class, the declaration cannot be evaded.
+in team-kb declares how a note will be written, ranked, and forgotten, and because the server
+computes that folder from the note's class, the declaration cannot be evaded.
 
 The mechanisms layered on top — exponential decay by class half-life, utility from usage and
 outcome, PPR centrality, tier priors on retrieval, the verdict contract, tombstones instead of
 deletion, nightly consolidation with an anchor exemption — are each individually modest. What makes
-them work together is that they all read the same tier assignment and the same $U(v,t)$, so there
-is exactly one place to look when the system's behaviour surprises you.
-
-master-kb had more folders, more classes, more predicates, and more observation kinds than this
-model, and it knew less. The difference is not sophistication. It is that every rule stated here is
-either compiled or explicitly owed to a numbered milestone, and none of them is prose hoping to be
-obeyed.
+them cohere is that they all read the same tier assignment and the same $U(v,t)$, so there is
+exactly one place to look when the system's behaviour surprises you. master-kb had more folders,
+more classes, more predicates, and more observation kinds than this model, and it knew less. The
+difference is not sophistication: it is that every rule stated here is either compiled or
+explicitly owed to a numbered milestone, and none of it is prose hoping to be obeyed.
 
 ---
 

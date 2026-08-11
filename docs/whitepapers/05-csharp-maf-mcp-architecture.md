@@ -21,11 +21,10 @@ sources:
 
 team-kb is a knowledge base for a software team whose canonical storage is a directory of
 markdown files and whose enforcement surface is a compiled .NET program. This paper explains
-why that combination was chosen over the incumbent (a Python `basic-memory` server backed by
-the same kind of markdown vault), how the layers are separated, what the Model Context
-Protocol (MCP) server actually does, how Microsoft Agent Framework (MAF) agents will be
-mounted behind that same protocol surface in milestone M4, and what has and has not been
-verified as of 2026-08-11.
+why that combination was chosen over the incumbent (a Python `basic-memory` server over the
+same kind of vault), how the layers separate, what the Model Context Protocol (MCP) server
+does, how Microsoft Agent Framework (MAF) agents mount behind that protocol surface in
+milestone M4, and what has and has not been verified as of 2026-08-11.
 
 The single sentence that motivates the whole design: *the previous knowledge base failed not
 because its rules were wrong, but because its rules were prose.* The v2 post-mortem is blunt
@@ -67,26 +66,23 @@ The decision was locked by the user on 2026-08-11 ("C# MAF end-to-end"), but it 
 own merits, and the merits are worth stating because they are the whole point of the rebuild:
 
 - **The type system is the enforcement mechanism.** `EntityClass`, `Verb`, and `ObsKind` are
-  C# enums. `Note.Permalink` is a computed property with no setter. There is no constructor
-  overload, no optional parameter, and no serialization path by which a caller supplies a
-  folder or invents a verb. The failure classes are not *rejected*; they are
-  *unrepresentable*. This is a stronger guarantee than validation, and it is the guarantee
-  Python's `str`-typed API could not offer without a schema layer that, as observed, nobody
-  turned on.
+  C# enums; `Note.Permalink` is a computed property with no setter. There is no constructor
+  overload, optional parameter, or serialization path by which a caller supplies a folder or
+  invents a verb. The failure classes are not *rejected*, they are *unrepresentable* — a
+  stronger guarantee than validation, and the one Python's `str`-typed API could not offer
+  without a schema layer that, as observed, nobody turned on.
 - **The enums propagate to the wire.** The MCP C# SDK generates JSON Schema from method
-  signatures. An enum parameter becomes a JSON Schema `enum`. The calling model therefore
-  sees the legal vocabulary *at call time*, in the tool description it is already reading.
-  This is post-mortem countermeasure #7 discharged for free by the SDK.
+  signatures, so an enum parameter becomes a JSON Schema `enum` and the calling model sees the
+  legal vocabulary *at call time*. Countermeasure #7, discharged for free by the SDK.
 - **First-party agent story.** MAF (`Microsoft.Agents.AI`) reached GA 1.0 on 2026-04-03 and
   sits at 1.17.0 as of 2026-08-04. Exposing a MAF agent as an MCP tool is a documented
-  two-liner (`McpServerTool.Create(agent.AsAIFunction())`), shipped as sample
-  `Agent_Step07_AsMcpTool`. The reverse direction — a MAF agent consuming MCP tools — needs
-  no adapter at all, because MCP tools surface as `AIFunction`/`AITool`. The agent layer and
-  the protocol layer are the same vendor's abstractions, which removes an integration seam
-  that a Python/MAF hybrid would have to own forever.
-- **Single deployable, no interpreter.** The target is a different machine and a team, not
-  largo. A self-contained .NET binary plus a markdown directory is a simpler operational
-  story than a Python environment with a resolver.
+  two-liner (`McpServerTool.Create(agent.AsAIFunction())`, sample `Agent_Step07_AsMcpTool`);
+  the reverse direction needs no adapter, since MCP tools surface as `AIFunction`/`AITool`.
+  Agent layer and protocol layer are one vendor's abstractions, removing an integration seam a
+  Python/MAF hybrid would own forever.
+- **Single deployable, no interpreter.** The target is a different machine and a team. A
+  self-contained .NET binary plus a markdown directory beats a Python environment plus a
+  resolver operationally.
 
 ### 1.3 Version table (research-verified 2026-08-11)
 
@@ -101,14 +97,13 @@ own merits, and the merits are worth stating because they are the whole point of
 | `Microsoft.Extensions.AI[.OpenAI]` | 10.8.3 | M1 embeddings (`IEmbeddingGenerator`) | not yet referenced |
 | `Microsoft.SemanticKernel.Connectors.SqliteVec` | 1.74.0-preview | M1 vector store candidate | swappable via `Microsoft.Extensions.VectorData` |
 
-Two version-hygiene facts belong in the record rather than in a footnote. First, the build
-emits `NU1903` for a transitive `SQLitePCLRaw.lib.e_sqlite3` 2.1.11 high-severity advisory
-(GHSA-2m69-gcr7-jv3q); the remediation is an explicit `SQLitePCLRaw.bundle_e_sqlite3` bump,
-scheduled for M1. Second, MCP C# SDK 2.0 carried real breaking changes in August 2026 —
-stateless HTTP is now the default (no `Mcp-Session-Id`), and server-initiated
-elicitation/sampling was replaced by MRTR, in which a tool returns `InputRequiredResult`
-carrying opaque `requestState`. team-kb's current stdio surface touches neither, but any
-future HTTP transport work inherits both.
+Two version-hygiene facts belong in the record. The build emits `NU1903` for a transitive
+`SQLitePCLRaw.lib.e_sqlite3` 2.1.11 high-severity advisory (GHSA-2m69-gcr7-jv3q); remediation
+is an explicit `SQLitePCLRaw.bundle_e_sqlite3` bump, scheduled for M1. And MCP C# SDK 2.0
+carried real breaking changes in August 2026 — stateless HTTP is now the default (no
+`Mcp-Session-Id`), and server-initiated elicitation/sampling was replaced by MRTR, in which a
+tool returns `InputRequiredResult` carrying opaque `requestState`. The current stdio surface
+touches neither, but any future HTTP transport work inherits both.
 
 ---
 
@@ -156,9 +151,9 @@ flowchart TB
     T2 -->|derived write| I2
 ```
 
-Read the arrows carefully: the substrate is written by the transaction layer and read by
-humans and by Git. The index is written by the transaction layer and read by the gates and
-the search surface. Nothing reads the index as a source of truth about content — only about
+Read the arrows carefully. The substrate is written by the transaction layer and read by
+humans and Git; the index is written by the transaction layer and read by the gates and the
+search surface. Nothing reads the index as a source of truth about content — only about
 *existence*, *class*, *title*, and *rank*.
 
 **Substrate (markdown vault).** Canonical. One dialect, emitted by
@@ -206,11 +201,11 @@ in `edges` and `notes` is therefore a projection of something the serializer alr
 
 Honest current status: **the boundary holds by construction, and the rebuild path is not yet
 implemented.** `VaultStore`'s constructor creates the schema and seeds the tag registry but
-does not scan the vault; today a fresh database against an existing vault yields an empty
+does not scan the vault, so today a fresh database against an existing vault yields an empty
 index rather than a rebuilt one. The invariant is real (nothing is index-only); the tooling
-that exercises it is M1 work — a `reindex` that walks the vault under `Ontology.InScope`,
-parses frontmatter, and replays `IndexNote`. Until that lands, the test is a design contract
-rather than a green check, and this paper declines to claim otherwise.
+that exercises it is M1 work — a `reindex` walking the vault under `Ontology.InScope`, parsing
+frontmatter, replaying `IndexNote`. Until then the test is a design contract, not a green
+check, and this paper declines to claim otherwise.
 
 The corollary: `Ontology.InScope` is the scope predicate C7, and it is what keeps a rebuild
 from re-ingesting junk. The legacy corpus indexed roughly 40 `.bak`/conflict files as notes.
@@ -301,16 +296,16 @@ Six tools compose the M0 surface:
 | `register_tag` | Add a namespaced tag to the registry; closed namespace set |
 
 The schema is where the ontology becomes enforceable against an LLM caller. `propose_note`
-takes `EntityClass entityClass`, and `RelationArg` takes `Verb Verb`, and `ObservationArg`
-takes `ObsKind Kind`. Those are C# enums, so the generated JSON Schema carries `enum` arrays
-listing exactly the ten classes, fourteen verbs, and twelve observation kinds. A model reading
-`tools/list` sees the legal vocabulary before it composes a call; a model that invents
-`part_of` fails deserialization rather than writing a fourth dialect into the corpus.
+takes `EntityClass entityClass`, `RelationArg` takes `Verb Verb`, `ObservationArg` takes
+`ObsKind Kind` — C# enums, so the generated JSON Schema carries `enum` arrays listing exactly
+the ten classes, fourteen verbs, and twelve observation kinds. A model reading `tools/list`
+sees the legal vocabulary before composing a call; a model that invents `part_of` fails
+deserialization rather than writing a fourth dialect into the corpus.
 
-Two absences are as deliberate as the enums. There is **no path parameter** — the folder is
-`Ontology.PathFor(entityClass)`, so folder anarchy is not a thing a caller can do. There is
-**no inverse-relation parameter** — direction is stored once and `Ontology.InverseName`
-computes the reverse at read time, so the one-sided-relation failure class cannot recur.
+Two absences are as deliberate as the enums. **No path parameter** — the folder is
+`Ontology.PathFor(entityClass)`, so folder anarchy is not something a caller can do. **No
+inverse-relation parameter** — direction is stored once and `Ontology.InverseName` computes
+the reverse at read time, so the one-sided-relation failure class cannot recur.
 
 Tool *descriptions* carry the parts of the contract a schema cannot express, written for a
 model reading them under time pressure. `search_notes` does not merely return an empty list;
@@ -357,8 +352,8 @@ sequenceDiagram
 
 The rejection path returns *actionable* text, not a boolean: `[C4] Relation target
 'knowledge/concept/does-not-exist' does not exist. Create it first or request an auto-stub.`
-An agent that receives that can repair its own call. An agent that receives `false` writes
-the note somewhere else.
+An agent receiving that can repair its own call; an agent receiving `false` writes the note
+somewhere else.
 
 ### 3.4 The open handshake defect
 
@@ -367,17 +362,14 @@ sequence of `initialize`, `initialized`, and `tools/list` JSON-RPC lines into
 `dotnet TeamKb.Mcp.dll` produces **zero stdout lines**. stderr shows the transport reading and
 then shutting down cleanly at EOF. The expected `initialize` response never appears.
 
-Three hypotheses are live:
-
-1. **EOF race.** The response may require the client to hold stdin open until the reply is
-   flushed; a file-redirect pipeline closes stdin immediately and the process may be racing
-   its own shutdown.
-2. **Tool discovery / DI.** `WithToolsFromAssembly()` over a *static* tool class with a
-   DI-injected `VaultStore` parameter follows the SDK 2.x sample pattern, but parameter
-   binding for static methods has not been observed working in this configuration. If
-   discovery throws during capability construction, a silent server is a plausible symptom.
-3. **Protocol version negotiation.** SDK 2.x preserves v2↔v1 handshake fallback; a
-   `protocolVersion` mismatch could be dropping the exchange silently.
+Three hypotheses are live. **EOF race** — the response may require the client to hold stdin
+open until the reply flushes, and a file-redirect pipeline closes stdin immediately, so the
+process may be racing its own shutdown. **Tool discovery / DI** — `WithToolsFromAssembly()`
+over a *static* tool class with a DI-injected `VaultStore` parameter follows the SDK 2.x
+sample pattern, but parameter binding for static methods has not been observed working in this
+configuration, and a throw during capability construction would present as a silent server.
+**Protocol version negotiation** — SDK 2.x preserves v2↔v1 handshake fallback, and a
+`protocolVersion` mismatch could drop the exchange silently.
 
 The debug plan is ordered by information yield: raise stderr to `Debug`, run
 `npx @modelcontextprotocol/inspector` (a real client that keeps the pipe open, discriminating
@@ -399,17 +391,11 @@ tools with the enum schemas visible.
 
 MAF's contribution is that an agent and a tool are the same shape. `AsAIFunction()` (in
 `AgentExtensions`) wraps `agent.RunAsync(query)` behind a single `query: string` parameter,
-and the agent's `Name` and `Description` become the MCP tool's name and description. Mounting
-it is two lines:
-
-```csharp
-McpServerTool tool = McpServerTool.Create(agent.AsAIFunction());
-builder.Services.AddMcpServer().WithStdioServerTransport().WithTools([tool]);
-```
-
-An optional `AgentSession` overload pins a session, which matters for the consolidator: a
-nightly run that should see its own prior reasoning wants a durable session, while a curator
-invoked per-write wants a fresh one.
+and the agent's `Name`/`Description` become the MCP tool's name and description. Mounting is
+`McpServerTool.Create(agent.AsAIFunction())` passed to
+`AddMcpServer().WithStdioServerTransport().WithTools([tool])`. An optional `AgentSession`
+overload pins a session, which matters for the consolidator: a nightly run that should see its
+own prior reasoning wants a durable session; a curator invoked per-write wants a fresh one.
 
 ### 4.2 The specialists and how they compose
 
@@ -565,8 +551,8 @@ LM Studio and on largo against the tunnel with no recompilation and no `#if`.
 ### 6.1 Defect replay, not coverage
 
 `GateTests` is not a unit-test suite in the usual sense and does not aim at line coverage. It
-is a **defect-replay gate suite**: each test reconstructs a failure actually measured in the
-legacy corpus during the 2026-08-11 audit and asserts that the new write path refuses it.
+is a **defect-replay gate suite**: each test reconstructs a failure measured in the legacy
+corpus during the 2026-08-11 audit and asserts the new write path refuses it.
 
 | Test | Replayed defect | Enforcing mechanism |
 |---|---|---|
@@ -598,12 +584,11 @@ whose companion strategy is making illegal states unconstructible.
 
 ### 6.2 What "verified" means here
 
-The project uses the word narrowly. Verified means: **`dotnet build TeamKb.sln` → 0 errors and
+The project uses the word narrowly. Verified means **`dotnet build TeamKb.sln` → 0 errors and
 `dotnet test TeamKb.sln` → 18/18 pass, on adagio, .NET SDK 10.0.302, 2026-08-11**, with the
-three bring-up fixes in place. It does not mean the MCP handshake works; VERIFY.md carries
-that as an open issue with a named debug plan. It does not mean the vault-rebuild path is
-exercised; §2.2 says so plainly. It does not mean the package advisory is cleared; NU1903 is
-logged against M1.
+three bring-up fixes in place. It does not mean the MCP handshake works (VERIFY.md carries
+that as an open issue with a named debug plan), nor that the vault-rebuild path is exercised
+(§2.2), nor that the package advisory is cleared (NU1903, logged against M1).
 
 That discipline is itself a countermeasure. The predecessor's fatal property was a gap between
 claimed state and measured state — an ontology describing a corpus that did not exist. A
@@ -635,9 +620,7 @@ folder layout in a total function, the inverse edges in a computed read, the ref
 in a validator that runs twice, and the whole write behind a propose/commit pair whose second
 half re-validates against the world as it now is. The markdown vault stays canonical and
 human-readable; the SQLite index stays derived and disposable; the agents, when they arrive,
-get the same tool surface and the same rejections as everyone else.
-
-Two things are true at once as of 2026-08-11: eighteen of eighteen defect-replay gates pass on
-a real Windows build, and the MCP server does not yet answer a handshake. Both belong in the
-record. The first is why the design is worth writing up; the second is why it is not yet
-finished.
+get the same tool surface and the same rejections as everyone else. Two things are true at
+once as of 2026-08-11 — eighteen of eighteen defect-replay gates pass on a real Windows build,
+and the MCP server does not yet answer a handshake. The first is why the design is worth
+writing up; the second is why it is not yet finished.

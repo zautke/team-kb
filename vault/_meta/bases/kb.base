@@ -1,0 +1,75 @@
+filters:
+  and:
+    - file.hasTag("kb")
+formulas:
+  age_days: '((now() - file.mtime) / 86400000).round(0)'
+  stale: 'if(((now() - file.mtime) / 86400000).round(0) > 90, "⚠ stale", "")'
+properties:
+  entity_class:
+    displayName: Class
+  status:
+    displayName: Status
+  confidence:
+    displayName: Confidence
+  formula.age_days:
+    displayName: "Age (days)"
+  formula.stale:
+    displayName: ""
+views:
+  - type: table
+    name: "All notes"
+    order:
+      - file.name
+      - entity_class
+      - status
+      - confidence
+      - formula.age_days
+      - formula.stale
+    sort:
+      - property: file.mtime
+        direction: DESC
+  - type: table
+    name: "By class"
+    groupBy:
+      property: entity_class
+      direction: ASC
+    order:
+      - file.name
+      - status
+      - confidence
+      - file.mtime
+  - type: table
+    name: "Needs review"
+    filters:
+      and:
+        - 'confidence < 0.7'
+    order:
+      - file.name
+      - entity_class
+      - confidence
+      - file.mtime
+    sort:
+      - property: confidence
+        direction: ASC
+  - type: table
+    name: "Stale (90d+)"
+    filters:
+      and:
+        - 'file.mtime < now() - "90d"'
+    order:
+      - file.name
+      - entity_class
+      - status
+      - formula.age_days
+    sort:
+      - property: file.mtime
+        direction: ASC
+  - type: table
+    name: "Deprecated"
+    filters:
+      and:
+        - file.hasTag("kb/status/deprecated")
+    order:
+      - file.name
+      - entity_class
+      - file.mtime
