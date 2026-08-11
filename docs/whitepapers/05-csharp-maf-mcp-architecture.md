@@ -164,12 +164,12 @@ isolation justification, and a provenance list. Body carries `## Overview`, `## 
 (`- [kind] text (provenance: …)`). The critical property is that the serializer is the *only*
 producer. The previous corpus had three relation dialects because five parties were producers.
 
-**Index (SQLite FTS5).** Derived and disposable. Four tables plus one virtual table:
-`notes` (permalink PK, title, class, status, confidence, path, modified), `edges`
-(src/verb/dst composite PK, `since`, `mode`, `confidence`, and the four Graphiti bi-temporal
-stamps `t_valid`/`t_invalid`/`t_created`/`t_expired`, with a `dst` index for backlinks),
-`staged` (proposal id → serialized note JSON), `tags` (the registry), and `notes_fts`
-(FTS5 over title/overview/observations, `porter unicode61`). WAL journal mode.
+**Index (SQLite FTS5).** Derived and disposable, WAL journal mode. Four tables plus one
+virtual table: `notes` (permalink PK, title, class, status, confidence, path, modified);
+`edges` (src/verb/dst composite PK, `since`, `mode`, `confidence`, plus the four Graphiti
+bi-temporal stamps `t_valid`/`t_invalid`/`t_created`/`t_expired`, with a `dst` index for
+backlinks); `staged` (proposal id → note JSON); `tags` (the registry); and `notes_fts` (FTS5
+over title/overview/observations, `porter unicode61`).
 
 **Gates (pure predicates).** `NoteValidator` takes an `IVaultIndex` and returns
 `IReadOnlyList<GateViolation>`. It writes nothing, throws nothing, and has no I/O of its own.
@@ -264,10 +264,9 @@ builder.Services.AddMcpServer().WithStdioServerTransport().WithToolsFromAssembly
 await builder.Build().RunAsync();
 ```
 
-**Config SSoT.** The vault root comes from `TEAMKB_VAULT` and nowhere else. There is no
-default, no fallback to the current directory, and no path constant. A missing variable is a
-startup crash with a sentence that says what to do. This is project rule C-2 applied to the
-one piece of configuration M0 has.
+**Config SSoT.** The vault root comes from `TEAMKB_VAULT` and nowhere else — no default, no
+fallback to the current directory, no path constant. A missing variable is a startup crash
+with a sentence saying what to do. Project rule C-2, applied to M0's one piece of config.
 
 **stdout is protocol, stderr is logs.** The discipline that most often bites stdio MCP
 servers, and it bit this one during bring-up: host logging polluted the protocol channel until
@@ -600,13 +599,12 @@ starts lying to its owners.
 
 ## 7. Open items
 
-1. **MCP handshake** (blocking M0 sign-off) — silent on `initialize`; four ordered debug steps
-   in VERIFY.md; inspector run discriminates the leading hypothesis fastest.
+1. **MCP handshake** (blocks M0 sign-off) — silent on `initialize`; four ordered debug steps in
+   VERIFY.md, inspector run discriminating fastest.
 2. **`SQLitePCLRaw.bundle_e_sqlite3` bump** — clears NU1903 / GHSA-2m69-gcr7-jv3q. M1.
-3. **Vault→index rebuild** — makes the delete-the-db test executable rather than contractual.
+3. **Vault→index rebuild** — makes the delete-the-db test executable, not contractual.
 4. **Assembly split** — `TeamKb.Vault` / `.Gates` / `.Index`, before M4 adds a second consumer.
-5. **Cross-platform CI matrix** — replace the scp-and-ssh ritual with a pipeline that builds
-   on macOS, Linux, and Windows.
+5. **Cross-platform CI matrix** — replace the scp-and-ssh ritual with macOS/Linux/Windows CI.
 6. **M1 retrieval** — `IEmbeddingGenerator` against LM Studio, sqlite-vec, RRF fusion, PPR
    tiebreak, verdict contract on every tool, `plan_turn`-style router.
 

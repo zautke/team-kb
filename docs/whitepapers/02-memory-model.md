@@ -117,18 +117,8 @@ one uniform note store.
 
 ### 3.2 The mapping
 
-team-kb's vault layout is a direct transcription:
-
-```
-team-kb-vault/
-├── _meta/          # anchor: constitution, ontology, registries, versions
-├── inbox/          # WORKING: untriaged capture; excluded from default retrieval
-├── episodes/       # EPISODIC: immutable session/event/incident records, append-only
-├── knowledge/      # SEMANTIC: entity notes, per-class subfolders (path computed)
-├── playbooks/      # PROCEDURAL-hot: ACE delta-bullet playbooks + per-domain cheatsheets
-├── procedures/     # PROCEDURAL-cold: verified parameterized workflows (Voyager-gated)
-└── hubs/           # HIERARCHICAL: auto-regenerated community/index notes (curator-owned)
-```
+team-kb's vault layout is a direct transcription — seven top-level folders, one per stratum, with
+`_meta/` holding the constitution, ontology, registries, and version history:
 
 | Tier | Folder | Cognitive analogue | Write path | Retrieval | Decay |
 |---|---|---|---|---|---|
@@ -701,23 +691,21 @@ explicitly owed to a numbered milestone, and none of it is prose hoping to be ob
 
 ## References
 
-**Cognitive architecture.** Atkinson & Shiffrin (1968) · Baddeley & Hitch (1974) · Tulving (1972,
-1985) · Squire (1992) · McClelland, McNaughton & O'Reilly (1995) · Ebbinghaus (1885) · Anderson &
-Schooler (1991).
+**Cognitive.** Atkinson & Shiffrin (1968) · Baddeley & Hitch (1974) · Tulving (1972, 1985) ·
+Squire (1992) · McClelland, McNaughton & O'Reilly (1995) · Ebbinghaus (1885) · Anderson & Schooler
+(1991).
 
 **Agentic memory.** ACE 2510.04618 · Reflexion 2303.11366 · FORGE 2605.16233 · AWM 2409.07429 ·
-Memp 2508.06433 · ExpeL 2308.10144 · Dynamic Cheatsheet 2504.07952 · Voyager 2305.16291 ·
-HippoRAG 2 2502.14802 · A-MEM 2502.12110 · Sleep-time Compute 2504.13171 · MemRL 2601.03192 ·
-Evo-Memory 2511.20857 · Generative Agents 2304.03442.
+Memp 2508.06433 · ExpeL 2308.10144 · Dynamic Cheatsheet 2504.07952 · Voyager 2305.16291 · HippoRAG
+2 2502.14802 · A-MEM 2502.12110 · Sleep-time Compute 2504.13171 · MemRL 2601.03192 · Evo-Memory
+2511.20857 · Generative Agents 2304.03442.
 
-**Graph and temporal.** Graphiti/Zep 2501.13956 · SAGE 2605.12061 · TOKI 2606.06240 ·
-TGMS 2607.10265 · MemTX 2607.23929 · AutoSchemaKG 2505.23628 · FadeMem 2601.18642 ·
-Consolidation-without-identity-drift 2607.01988 · Cognee (memify) · Google OKF v0.1.
-
-**Schema formalism.** Zaveri et al., *Quality Assessment for Linked Data* · Poveda-Villalón et al.,
-*OOPS!* (P11, P13) · W3C SHACL · *PG-Schema* (SIGMOD 2023) · *PG-Keys* · Halpin et al., *When
-owl:sameAs Isn't the Same* · Galárraga & Suchanek (WSDM 2017) · Matentzoglu et al., *KGCL* (2025).
+**Graph, temporal, schema.** Graphiti/Zep 2501.13956 · SAGE 2605.12061 · TOKI 2606.06240 · TGMS
+2607.10265 · MemTX 2607.23929 · AutoSchemaKG 2505.23628 · FadeMem 2601.18642 ·
+Consolidation-without-identity-drift 2607.01988 · Cognee (memify) · Google OKF v0.1 · Zaveri et
+al., *Quality Assessment for Linked Data* · Poveda-Villalón et al., *OOPS!* (P11, P13) · W3C SHACL
+· *PG-Schema* (SIGMOD 2023) · *PG-Keys* · Halpin et al., *When owl:sameAs Isn't the Same* ·
+Galárraga & Suchanek (WSDM 2017) · Matentzoglu et al., *KGCL* (2025).
 
 **Internal.** `_meta/{constitution,ontology,memory-model,maintenance}.md` ·
-`docs/plan-2026-08-11-teardown-rebuild.md` · `docs/research/2026-08-11-*.md` ·
-`src/TeamKb.Core/` · `src/TeamKb.Mcp/`.
+`docs/plan-2026-08-11-teardown-rebuild.md` · `docs/research/2026-08-11-*.md` · `src/TeamKb.*/`.
