@@ -13,6 +13,9 @@ sources:
   - src/TeamKb.Tests/GateTests.cs
   - VERIFY.md (verified state, 2026-08-11, adagio)
   - docs/continuity/{PLANS,CURRENT_TASK_STATE,REMEMBER,SESSION_LOG}.md
+tags:
+  - kb/whitepaper
+  - kb/topic/architecture
 ---
 
 # The C#/MAF/MCP Implementation Architecture of team-kb
@@ -26,16 +29,16 @@ same kind of vault), how the layers separate, what the Model Context Protocol (M
 does, how Microsoft Agent Framework (MAF) agents mount behind that protocol surface in
 milestone M4, and what has and has not been verified as of 2026-08-11.
 
-The single sentence that motivates the whole design: *the previous knowledge base failed not
-because its rules were wrong, but because its rules were prose.* The v2 post-mortem is blunt
-about it — `basic-memory` shipped a machine-checkable gate (Picoschema with
-`validation: error`) and **zero schema notes were ever declared**. The gate existed and was
-never switched on. Six hundred and fifty-three notes later the corpus measured 35.2% dangling
-wikilinks, 53.8% orphans, three coexisting relation dialects, and 189 distinct observation
-kinds with a long singleton tail. The graph was never a graph; it was a folder of documents
-with decorative links. Everything below is an answer to that failure: a rule you cannot
-express in a type is a rule you will eventually violate, so the vocabulary, the paths, the
-inverses, and the referential checks all move into a compiled artifact that refuses the write.
+One sentence motivates the design: *the previous knowledge base failed not because its rules
+were wrong, but because its rules were prose.* The v2 post-mortem is blunt — `basic-memory`
+shipped a machine-checkable gate (Picoschema with `validation: error`) and **zero schema notes
+were ever declared**. The gate existed and was never switched on. Six hundred and fifty-three
+notes later the corpus measured 35.2% dangling wikilinks, 53.8% orphans, three coexisting
+relation dialects, and 189 distinct observation kinds with a long singleton tail. The graph
+was never a graph; it was a folder of documents with decorative links. Everything below
+answers that failure: a rule you cannot express in a type is a rule you will eventually
+violate, so vocabulary, paths, inverses, and referential checks move into a compiled artifact
+that refuses the write.
 
 ---
 
@@ -128,9 +131,7 @@ flowchart TB
         T3["CaptureEpisode (append-only)"]
     end
     subgraph L3["Gates — NoteValidator + Ontology"]
-        G1["C2 identity · C3 signature · C4 referential"]
-        G2["I1 connectivity · I4 similarity"]
-        G3["provenance · hypothesis ceiling · tag registry"]
+        G1["C2 identity · C3 signature · C4 referential · I1 connectivity<br/>I4 similarity · provenance · hypothesis ceiling · tag registry"]
     end
     subgraph L2["Index — SQLite WAL"]
         I1[("notes · edges · staged · tags")]
@@ -180,12 +181,12 @@ is a static class of total functions: `PathFor`, `InverseName`, `Signature`, `No
 milliseconds.
 
 **Transaction (propose/commit).** Write ≠ commit, borrowed from MemTX/TGMS. `Propose` runs
-the gates and, on success, stages serialized JSON with a timestamped id. `Commit` deserializes,
-**re-runs the gates** (state may have moved between propose and commit — this is why a stale
-proposal cannot smuggle a now-colliding permalink into the vault), writes canonical markdown,
-indexes, and deletes the staging row. `CaptureEpisode` deliberately bypasses staging: episodes
-are immutable append-only Event-class notes, and the same-day identical-title case throws
-rather than overwrites. **Protocol** (§3) and **agents** (§4) sit above.
+the gates and stages serialized JSON with a timestamped id. `Commit` deserializes, **re-runs
+the gates** (state may have moved since propose — this is why a stale proposal cannot smuggle
+a now-colliding permalink into the vault), writes canonical markdown, indexes, and deletes the
+staging row. `CaptureEpisode` bypasses staging: episodes are immutable append-only Event-class
+notes, and a same-day identical title throws rather than overwrites. **Protocol** (§3) and
+**agents** (§4) sit above.
 
 ### 2.2 The "delete the .db and nothing breaks" test
 
@@ -205,13 +206,12 @@ does not scan the vault, so today a fresh database against an existing vault yie
 index rather than a rebuilt one. The invariant is real (nothing is index-only); the tooling
 that exercises it is M1 work — a `reindex` walking the vault under `Ontology.InScope`, parsing
 frontmatter, replaying `IndexNote`. Until then the test is a design contract, not a green
-check, and this paper declines to claim otherwise.
-
-The corollary: `Ontology.InScope` is the scope predicate C7, and it is what keeps a rebuild
-from re-ingesting junk. The legacy corpus indexed roughly 40 `.bak`/conflict files as notes.
-`InScope` rejects any filename containing `.bak`, `conflict`, `~`, or `.orig` anywhere in the
-name — deliberately unanchored, because real conflict artifacts carry their markers at either
-end (`x.md.bak`, `conflict-files-obsidian-git.md`, `y (conflicted copy).md`).
+check, and this paper declines to claim otherwise. The corollary is that `Ontology.InScope`
+(scope predicate C7) is what keeps a rebuild from re-ingesting junk: the legacy corpus indexed
+roughly 40 `.bak`/conflict files as notes, and `InScope` rejects any filename containing
+`.bak`, `conflict`, `~`, or `.orig` anywhere in the name — deliberately unanchored, because
+real conflict artifacts carry markers at either end (`x.md.bak`,
+`conflict-files-obsidian-git.md`, `y (conflicted copy).md`).
 
 ### 2.3 The planned assembly split
 
@@ -238,12 +238,11 @@ in its dependency closure, so no one can "just cache that in a table." `TeamKb.G
 references `Vault` and declares `IVaultIndex`; it cannot reach a database, so a gate cannot
 quietly become a query. `TeamKb.Index` implements the interface and is the only assembly that
 knows a `.db` file exists. Layer violations stop being review comments and become compile
-errors — the same move the ontology made when it stopped being prose and became enums.
-
-The split is deferred, not abandoned: M0's goal was a usable vertical slice, and a
-three-assembly skeleton around 500 lines of logic would have been premature. It is scheduled
-before M4, the first point at which a second consumer of `Core` exists and the temptation to
-reach across layers becomes real.
+errors — the same move the ontology made when it stopped being prose and became enums. The
+split is deferred, not abandoned: M0's goal was a usable vertical slice, and a three-assembly
+skeleton around 500 lines of logic would have been premature. It is scheduled before M4, the
+first point at which a second consumer of `Core` exists and the temptation to reach across
+layers becomes real.
 
 ---
 
@@ -276,14 +275,12 @@ and the client sees a parse error rather than your debug message. Relatedly, the
 itself writes chatter to stderr; harmless precisely because the protocol lives on stdout.
 
 **DI of `VaultStore`.** Registered as a singleton and injected into static tool methods as
-their first parameter. `WithToolsFromAssembly()` discovers `[McpServerToolType]` classes, and
-the parameter binder resolves non-schema parameters from the service provider — so
+their first parameter. `WithToolsFromAssembly()` discovers `[McpServerToolType]` classes and
+the parameter binder resolves non-schema parameters from the service provider, so
 `VaultStore store` never appears in the JSON Schema the client sees. One store, one open
 SQLite connection, one process.
 
 ### 3.2 The tool surface as the enforcement point
-
-Six tools compose the M0 surface:
 
 | Tool | Contract |
 |---|---|
@@ -304,12 +301,10 @@ deserialization rather than writing a fourth dialect into the corpus.
 Two absences are as deliberate as the enums. **No path parameter** — the folder is
 `Ontology.PathFor(entityClass)`, so folder anarchy is not something a caller can do. **No
 inverse-relation parameter** — direction is stored once and `Ontology.InverseName` computes
-the reverse at read time, so the one-sided-relation failure class cannot recur.
-
-Tool *descriptions* carry the parts of the contract a schema cannot express, written for a
-model reading them under time pressure. `search_notes` does not merely return an empty list;
-it returns `verdict: absent — no notes match. The knowledge likely does not exist yet.` That
-phrasing is lifted from jcodemunch's honesty contract and exists to stop the synonym-retry
+the reverse at read time, so the one-sided-relation failure class cannot recur. Tool
+*descriptions* carry the rest of the contract: `search_notes` does not merely return an empty
+list, it returns `verdict: absent — no notes match. The knowledge likely does not exist yet.`
+That phrasing is lifted from jcodemunch's honesty contract and exists to stop the synonym-retry
 spiral in which an agent searches five ways for something never written down.
 
 ### 3.3 The propose/commit sequence
@@ -370,17 +365,16 @@ configuration, and a throw during capability construction would present as a sil
 **Protocol version negotiation** — SDK 2.x preserves v2↔v1 handshake fallback, and a
 `protocolVersion` mismatch could drop the exchange silently.
 
-The debug plan is ordered by information yield: raise stderr to `Debug`, run
+The debug plan is ordered by information yield: raise stderr to `Debug`; run
 `npx @modelcontextprotocol/inspector` (a real client that keeps the pipe open, discriminating
-hypothesis 1 immediately), run the SDK's `QuickstartWeatherServer` sample on the same box as a
-known-good control, and log the discovered tool count at startup to settle hypothesis 2.
-
-What the defect does and does not invalidate is worth stating precisely, because "the MCP
-server doesn't answer" sounds fatal and is not. The gate suite exercises `VaultStore` directly
-and passes 18/18; the gates, the transaction path, the serializer, the index, and the search
-surface are verified. What is unverified is one protocol-layer edge. Per VERIFY.md, MCP
-conformance is not claimed until an inspector session shows `tools/list` returning all six
-tools with the enum schemas visible.
+hypothesis 1 immediately); run the SDK's `QuickstartWeatherServer` sample on the same box as a
+known-good control; log the discovered tool count at startup to settle hypothesis 2. What the
+defect does and does not invalidate is worth stating precisely, because "the MCP server
+doesn't answer" sounds fatal and is not. The gate suite exercises `VaultStore` directly and
+passes 18/18, so gates, transaction path, serializer, index, and search surface are verified;
+what is unverified is one protocol-layer edge. Per VERIFY.md, MCP conformance is not claimed
+until an inspector session shows `tools/list` returning all six tools with enum schemas
+visible.
 
 ---
 
@@ -438,16 +432,13 @@ curator's authority is rhetorical (it drafts well) and never structural.
 The ontologist is the one specialist whose output is *not* a note. Following AutoSchemaKG it
 re-induces vocabulary from the corpus quarterly and emits change proposals in KGCL — the typed
 change language with reverse patches — which a human gates. Vocabulary change is a MAJOR
-version event with a migration shim, not something an agent applies.
-
-The sweeper runs on a schedule rather than on request: staleness by per-class mean-update age,
-confidence decay, orphan queue, and a `capture_episode` write of its own report so maintenance
-history lands in the knowledge base. This is countermeasure #6 — the previous sweeper was a
-runbook nobody executed, and the fix is that a job runs and writes evidence.
+version event with a migration shim, not something an agent applies. The sweeper runs on a
+schedule rather than on request: staleness by per-class mean-update age, confidence decay,
+orphan queue, and a `capture_episode` write of its own report so maintenance history lands in
+the knowledge base. That is countermeasure #6 — the previous sweeper was a runbook nobody
+executed, and the fix is that a job runs and writes evidence.
 
 ### 4.3 Process topology
-
-Two topologies were considered:
 
 **A — one process, in-process agents (chosen for M4).** MAF host and MCP server are the same
 executable; agent tools and deterministic tools share the `VaultStore` singleton, so an
@@ -460,7 +451,6 @@ takes the protocol surface with it.
 MAF and consumes the MCP surface as a *client* via `McpClientFactory.CreateAsync` with a
 `StdioClientTransport`. Isolation is real — agents cannot corrupt server state except through
 the protocol — at the price of two deployables, two configs, and a transport hop per write.
-
 M4 takes A, on the greenfield principle that the shortest path to a working stable system
 wins, and because the split is cheap later precisely *because* agents already reach the vault
 only through tools. B is the migration target if agent turns start starving interactive
@@ -491,16 +481,11 @@ macOS, invisible on Linux, fatal on Windows — that no code review on largo wou
 **SQLite connection pooling holds the database file open on Windows.** `GateTests` creates a
 temp-directory vault per test and deletes it in `Dispose`. On POSIX, deleting an open file is
 routine; on Windows it is a sharing violation, and `Microsoft.Data.Sqlite`'s pool keeps the
-handle alive past `SqliteConnection.Dispose()`. One line in `VaultStore.Dispose` fixes it:
-
-```csharp
-SqliteConnection.ClearPool(_db);
-_db.Dispose();
-```
-
-This is a genuine production bug, not a test artifact. Any code path that disposes a store and
-then moves, deletes, or backs up the vault directory would fail the same way in the field — on
-Windows only, intermittently, under load.
+handle alive past `SqliteConnection.Dispose()`. One line in `VaultStore.Dispose` fixes it —
+`SqliteConnection.ClearPool(_db)` before `_db.Dispose()`. This is a genuine production bug,
+not a test artifact: any code path that disposes a store and then moves, deletes, or backs up
+the vault directory would fail the same way in the field — on Windows only, intermittently,
+under load.
 
 **PowerShell here-string quoting corrupts JSON.** Feeding JSON-RPC lines to the server via a
 double-quoted PowerShell here-string leaves `\"` literal, producing a malformed payload.
@@ -529,11 +514,10 @@ the M1 exit criterion should be a CI matrix rather than a ritual.
 ### 5.4 Embeddings on the target machine
 
 The M1 retrieval layer needs embeddings, and the constraint landscape differs per machine.
-largo forbids local model weights outright — it is disk-constrained to single-digit GB and the
-prohibition is absolute. The **target machine runs LM Studio with an ONNX engine**, where
-local inference is permitted, so the deployment story is a local OpenAI-compatible endpoint.
-
-The design keeps this a configuration question, not an architectural one.
+largo forbids local model weights outright — disk-constrained to single-digit GB, prohibition
+absolute. The **target machine runs LM Studio with an ONNX engine**, where local inference is
+permitted, so the deployment story there is a local OpenAI-compatible endpoint. The design
+keeps this a configuration question, not an architectural one.
 `IEmbeddingGenerator<string, Embedding<float>>` from `Microsoft.Extensions.AI` 10.8.3 is the
 only interface the index layer sees. Behind it sits either an `OpenAIClient` pointed at an
 arbitrary base URI — LM Studio locally, or the `ollama2.braisenly.com` tunnel from largo — or
@@ -550,8 +534,8 @@ LM Studio and on largo against the tunnel with no recompilation and no `#if`.
 ### 6.1 Defect replay, not coverage
 
 `GateTests` is not a unit-test suite in the usual sense and does not aim at line coverage. It
-is a **defect-replay gate suite**: each test reconstructs a failure measured in the legacy
-corpus during the 2026-08-11 audit and asserts the new write path refuses it.
+is a **defect-replay gate suite** on xunit.v3: each test reconstructs a failure measured in
+the legacy corpus during the 2026-08-11 audit and asserts the new write path refuses it.
 
 | Test | Replayed defect | Enforcing mechanism |
 |---|---|---|
@@ -590,10 +574,9 @@ that as an open issue with a named debug plan), nor that the vault-rebuild path 
 (§2.2), nor that the package advisory is cleared (NU1903, logged against M1).
 
 That discipline is itself a countermeasure. The predecessor's fatal property was a gap between
-claimed state and measured state — an ontology describing a corpus that did not exist. A
-verification document recording "18/18 pass **and** the handshake is silent" is worth more
-than one recording only the green number, because the second kind is how a knowledge base
-starts lying to its owners.
+claimed and measured state — an ontology describing a corpus that did not exist. A document
+recording "18/18 pass **and** the handshake is silent" is worth more than one recording only
+the green number, because the second kind is how a knowledge base starts lying to its owners.
 
 ---
 
