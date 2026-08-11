@@ -1,0 +1,6 @@
+bin/
+obj/
+*.user
+.teamkb.db*
+.DS_Store
+.env
