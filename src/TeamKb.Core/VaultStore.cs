@@ -114,9 +114,14 @@ public sealed class VaultStore : IVaultIndex, IDisposable
 
     public IEnumerable<(string Permalink, string Title, double Rank)> Search(string query, int limit = 10)
     {
+        // FTS5 treats -, :, etc. as query syntax ("a-b" → column filter). Quote each token
+        // so plain text is always a valid query; multi-token stays implicit AND.
+        var safe = string.Join(" ", query.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)
+            .Select(t => $"\"{t.Replace("\"", "\"\"")}\""));
+        if (safe.Length == 0) yield break;
         using var cmd = _db.CreateCommand();
         cmd.CommandText = "SELECT permalink, title, bm25(notes_fts) FROM notes_fts WHERE notes_fts MATCH $q ORDER BY bm25(notes_fts) LIMIT $l";
-        cmd.Parameters.AddWithValue("$q", query);
+        cmd.Parameters.AddWithValue("$q", safe);
         cmd.Parameters.AddWithValue("$l", limit);
         using var r = cmd.ExecuteReader();
         while (r.Read()) yield return (r.GetString(0), r.GetString(1), r.GetDouble(2));
@@ -193,5 +198,10 @@ public sealed class VaultStore : IVaultIndex, IDisposable
         return cmd.ExecuteScalar();
     }
 
-    public void Dispose() => _db.Dispose();
+    public void Dispose()
+    {
+        // Pooled connections hold the db file open after Dispose (locks the file on Windows).
+        SqliteConnection.ClearPool(_db);
+        _db.Dispose();
+    }
 }

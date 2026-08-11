@@ -80,9 +80,11 @@ public static class Ontology
         return slug.Trim('-');
     }
 
-    /// <summary>C7 — scope predicate: junk is unindexable.</summary>
+    /// <summary>C7 — scope predicate: junk is unindexable. Markers match anywhere in the
+    /// name — real conflict artifacts carry them at either end ("x.md.bak",
+    /// "conflict-files-obsidian-git.md", "y (conflicted copy).md").</summary>
     public static bool InScope(string fileName) =>
         fileName.EndsWith(".md", StringComparison.OrdinalIgnoreCase)
         && !System.Text.RegularExpressions.Regex.IsMatch(
-            fileName, @"(\.bak|conflict|~|\.orig)(\.md)?$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            fileName, @"\.bak|conflict|~|\.orig", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 }
