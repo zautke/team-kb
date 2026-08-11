@@ -9,15 +9,11 @@
 - **Build+test on adagio** (`ssh adagio`, Windows, dotnet 10.0.302, C:\Users\me\dev\team-kb): build 0 errors, **tests 18/18 pass**.
 - largo is unusable for builds: no SDK, boot disk ~200-500MB free (ENOSPC events mid-session).
 
-## Resume point — ONE open issue
+## Resume point
 
-**MCP stdio handshake returns nothing.** Clean JSON-RPC (initialize → initialized → tools/list) from
-`C:\Users\me\dev\mcp-smoke.jsonl` piped into `dotnet TeamKb.Mcp\bin\Debug\net10.0\TeamKb.Mcp.dll`
-(TEAMKB_VAULT set) → 0 stdout lines; stderr shows transport start + clean EOF shutdown.
-Debug order: (1) stderr Debug-level logs, (2) `npx @modelcontextprotocol/inspector` against the dll,
-(3) run SDK QuickstartWeatherServer on adagio as known-good, (4) verify WithToolsFromAssembly
-discovered the 6 KbTools (static class + DI-injected VaultStore param — binding suspect).
-Full notes: `VERIFY.md` "OPEN ISSUE".
+**M0.1 RESOLVED** — "silent server" was a test-harness stdin-EOF race, zero code changes.
+Holding stdin open shows correct initialize + tools/list (all 6 tools). M0 fully verified.
+Next: M1 kickoff (embeddings, RRF, verdict contract, plan_turn router) per PLANS.
 
 ## Sync ritual (largo ↔ adagio)
 

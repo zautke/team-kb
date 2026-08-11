@@ -11,7 +11,7 @@
 
 ## Open
 
-- [ ] **M0.1 MCP handshake: server responds nothing to valid initialize** — debug per VERIFY.md OPEN ISSUE (inspector, known-good sample, tool-discovery logging, stdin-EOF race)
+- [x] M0.1 MCP handshake — RESOLVED 2026-08-11: harness stdin-EOF race, not a server bug; all 6 tools verified (VERIFY.md)
 - [ ] Bump SQLitePCLRaw.bundle_e_sqlite3 (NU1903 GHSA-2m69-gcr7-jv3q)
 - [ ] Decide GitHub remote + push
 - [ ] M1 kickoff (see PLANS)
@@ -19,4 +19,4 @@
 
 ## Blocked-until
 
-M1 blocked on M0.1 (server must actually serve).
+(nothing — M0 fully verified, M1 unblocked)

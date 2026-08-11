@@ -43,16 +43,16 @@ dotnet run --project TeamKb.Mcp   # stdio server
   3. FTS5 hyphen syntax (`no such column: topic`) → Search now token-quotes queries.
 - MCP stdio: host logging rerouted to stderr (was polluting the protocol channel).
 
-## OPEN ISSUE — MCP handshake smoke fails (unresolved)
+## RESOLVED — MCP handshake (was: "server silent")
 
-Feeding initialize + initialized + tools/list JSON-RPC lines (verified-clean, file-based) into
-`dotnet TeamKb.Mcp.dll` yields **zero stdout lines**; stderr shows transport reading then clean
-shutdown at EOF. Expected: initialize response. Suspects: (a) response requires the client to keep
-stdin open until reply flushed and the pipeline races EOF, (b) SDK 2.1.0 tool-discovery/DI issue
-with static tools + injected VaultStore, (c) protocolVersion negotiation silently dropping.
-Next debug steps: stderr at Debug level; test with `npx @modelcontextprotocol/inspector`; try the
-SDK QuickstartWeatherServer sample as a known-good on the same box; check `WithToolsFromAssembly`
-found the 6 tools (log at startup).
+Root cause: **test-harness stdin-EOF race, not a server bug.** Piping the JSON-RPC lines and
+closing stdin immediately shut the host down before responses flushed. Holding stdin open
+(`& { Get-Content smoke.jsonl; Start-Sleep 5 } | dotnet TeamKb.Mcp.dll`) yields correct
+behavior (verified adagio 2026-08-11):
+- initialize → `{"protocolVersion":"2025-06-18", "serverInfo":{"name":"TeamKb.Mcp"}, tools:{listChanged:true}}`
+- tools/list → all 6 tools: capture_episode, propose_note, read_note, register_tag,
+  search_notes, commit_note.
+Real MCP clients hold stdin open for the session — no code change needed. M0 fully verified.
 
 ## Status / residual risk
 
