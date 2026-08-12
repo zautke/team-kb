@@ -1,0 +1,47 @@
+{
+  "colorGroups": [
+    {
+      "query": "path:episodes",
+      "color": {
+        "a": 1,
+        "rgb": 14701138
+      }
+    },
+    {
+      "query": "path:knowledge",
+      "color": {
+        "a": 1,
+        "rgb": 5431378
+      }
+    },
+    {
+      "query": "path:hubs",
+      "color": {
+        "a": 1,
+        "rgb": 16748574
+      }
+    },
+    {
+      "query": "path:playbooks",
+      "color": {
+        "a": 1,
+        "rgb": 11621088
+      }
+    },
+    {
+      "query": "path:procedures",
+      "color": {
+        "a": 1,
+        "rgb": 5419488
+      }
+    },
+    {
+      "query": "path:inbox",
+      "color": {
+        "a": 1,
+        "rgb": 9079434
+      }
+    }
+  ],
+  "showTags": true
+}

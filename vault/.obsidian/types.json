@@ -1,0 +1,11 @@
+{
+  "types": {
+    "created": "datetime",
+    "modified": "datetime",
+    "confidence": "number",
+    "kb_version": "text",
+    "entity_class": "text",
+    "permalink": "text",
+    "status": "text"
+  }
+}

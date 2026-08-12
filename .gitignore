@@ -4,3 +4,4 @@ obj/
 .teamkb.db*
 .DS_Store
 .env
+vault/.obsidian/workspace.json
