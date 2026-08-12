@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "teamkb": {
+      "command": "/bin/bash",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/run_server.sh"],
+      "env": {
+        "TEAMKB_DEFAULT_VAULT": "${CLAUDE_PROJECT_DIR}/vault"
+      }
+    }
+  }
+}

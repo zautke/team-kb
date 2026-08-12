@@ -1,0 +1,8 @@
+{
+  "name": "team-kb",
+  "version": "0.1.0",
+  "description": "team-kb curator plugin: gated knowledge-vault ingestion, curation, and retrieval over the teamkb MCP server.",
+  "author": {
+    "name": "team-kb"
+  }
+}

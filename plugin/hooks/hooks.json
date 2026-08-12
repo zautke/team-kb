@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Before compaction: capture a session snapshot episode into the team-kb vault via mcp__plugin_team-kb_teamkb__capture_episode (title: 'Session snapshot <date> <topic>', body: current task state, decisions made, open threads; provenanceSource: session:<date>; provenanceAuthor: agent:primary). If the teamkb server is unavailable, skip silently."
+          }
+        ]
+      }
+    ]
+  }
+}
