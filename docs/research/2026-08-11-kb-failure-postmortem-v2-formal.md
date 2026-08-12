@@ -11,11 +11,11 @@ tags: [research, rebuild, dossier-2026-08]
 
 # master-kb Post-Mortem v2 — empirical re-audit + formal grounding (read-only, 2026-08-11)
 
-Tooling note: codemunch could NOT index the legacy corpus — both `codemunch` and `codemunch-adagio` are hosted/remote and `resolve_repo /Users/derp/basic-memory` returns "Path does not exist". Fell back to read-only `find`/`python3` measurement (stated as required). Current master-kb sampled via kb MCP (`list_directory`, `schema_infer`, `schema_validate`).
+Tooling note: codemunch could NOT index the legacy corpus — both `codemunch` and `codemunch-remote` are hosted/remote and `resolve_repo <legacy-corpus-path>` returns "Path does not exist". Fell back to read-only `find`/`python3` measurement (stated as required). Current master-kb sampled via kb MCP (`list_directory`, `schema_infer`, `schema_validate`).
 
 ## A. Empirical inventory
 
-### A1. Legacy corpus `/Users/derp/basic-memory` — 653 .md, 8.2 MB, full census (not a sample)
+### A1. Legacy corpus `<legacy-corpus-path>` — 653 .md, 8.2 MB, full census (not a sample)
 
 | Defect | Measured |
 |---|---|

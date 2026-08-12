@@ -17,7 +17,7 @@ Existing master-kb `_governance` is substantial and largely REUSABLE (this is th
 - **Staleness policy**: per-class MUA + exponential confidence decay λ (half-life per class), weekly sweeper, confidence floor 0.3, hard-prune criteria.
 - **Quality gates G-1..G-7** (kb-curator write gates): BNF frontmatter, class registered, hypothesis ceiling, dedup (permalink+semantic 0.85), provenance, orphan check, Neo4j mirror projection.
 - **Playbooks**: add/merge/split/deprecate entity, evolve-ontology, frontmatter-normalization, self-healing runbook.
-- **Neo4j mirror**: schema.cypher + schema.graphql + kb_mirror.py (adagio.local:5604/5605, container graphrag-neo4j).
+- **Neo4j mirror**: schema.cypher + schema.graphql + kb_mirror.py (<docker-host>:5604/5605, container graphrag-neo4j).
 - **Non-negotiables**: C-1 ports >10000, C-2 config SSoT, C-3 registry-before-choice.
 - `_versions/` semver history v0.1→0.2 (append-only). `__handover/` = inbox drops (incl. jCodeMunch plugin note, copilot hooks/otel tutorials).
 
@@ -31,7 +31,7 @@ Known weaknesses to fix in rebuild (evidence in kb itself): vocabulary noncompli
 
 1. **Fresh system replacing basic-memory** with custom tooling. Borrow kb's best features; better-invented/evolving/curated; richer agentic involvement. **Incremental**: start small+simple, nail core fundamentals out of the gate. Includes a research+discussion spike on kb's holes: broken relations, orphans, bulk-loading skew on few concepts, empty classes/notes (post-mortem agent running).
 2. **C# MAF end-to-end** — curator + specialists as Microsoft Agent Framework agents exposed as MCP tools (ModelContextProtocol C# SDK).
-3. **Target = different machine + team**: LMStudio + ONNX engine available (local inference legal there — largo ban is largo-only). **Poach neo4j-graphrag** heavily; settle appropriate vector store during design.
+3. **Target = different machine + team**: LMStudio + ONNX engine available (local inference legal there — no-local-models ban applies only to the original authoring Mac). **Poach neo4j-graphrag** heavily; settle appropriate vector store during design.
 4. **Aggressive ontology reset** → v1.0: ~8-10 entity classes, ~12-16 core verbs (qualifiers as edge properties), ~12 obs kinds; migration shims from v0.2.
 
 ## Additional kb assets found (crossover)
@@ -106,7 +106,7 @@ Python/uv tool; tree-sitter parser (2226-line lang map); SQLite WAL per-repo `{s
 ### E2. Post-mortem v2 (formal grounding + full legacy census, 2026-08-11)
 
 v1 was directionally right, quantitatively LOW. Extensions:
-- **Legacy corpus full census (653 notes, /Users/derp/basic-memory)**: 35.2% dangling wikilinks (862/2451); **53.8% orphans**; 3 relation dialects (2405 / 1249 / 64 uses); 31 duplicate slugs; 57.9% filename-dialect split; **189 distinct observation kinds** (singleton tail); relation verbs leaking into obs kinds. "The graph was never a graph — a folder of documents with decorative links."
+- **Legacy corpus full census (653 notes, <legacy-corpus-path>)**: 35.2% dangling wikilinks (862/2451); **53.8% orphans**; 3 relation dialects (2405 / 1249 / 64 uses); 31 duplicate slugs; 57.9% filename-dialect split; **189 distinct observation kinds** (singleton tail); relation verbs leaking into obs kinds. "The graph was never a graph — a folder of documents with decorative links."
 - **Current kb worse than v1 said**: ~**120 obs kinds + ~60 predicates within ONE note type** (schema_infer over 198 notes); case-dialect predicate twins (part_of 41 vs PART_OF 21…); markdown-corrupted predicate names (`**Related**:`); 12 project identities duplicated across project/ vs projects/; class folder nested inside instance folder (project/document/).
 - **Sharpened root cause**: basic-memory SHIPPED a machine gate (Picoschema + `validation: error`) — **zero schema notes were ever declared**. Not "no gate existed"; "gate never switched on."
 - **Formal defect mapping** (full table in appendix report): Zaveri quality dimensions; OOPS! P11 missing domain/range + P13 missing inverse; SHACL (+ incremental revalidation arXiv:2508.00137, xpSHACL explanations); PG-Schema/PG-Keys (exclusive∧mandatory∧singleton keys); Halpin sameAs identity pathology → merge-or-distinguish gate; Galárraga completeness estimators → class-cardinality metrics job; **KGCL** (INCATools) as the typed change language for all T/P/K evolution with reverse patches.
@@ -353,7 +353,7 @@ REPORT NOT FOUND
 # jcodemunch — functional spec (read-only recon, verified from source)
 
 ## Identity
-`~/.local/bin/jcodemunch-mcp` → uv-tool shim → Python pkg `jcodemunch_mcp` **v1.108.155** at `~/.local/share/uv/tools/jcodemunch-mcp/lib/python3.14/site-packages/`. Siblings: `jdocmunch-mcp`, `gcm`, `munch-bench`. Source repo on disk: `/Volumes/MACDEV/jgravelle#jcodemunch-mcp` (older than installed; ARCHITECTURE.md/SPEC.md still accurate). Live MCP surface = `mcp__codemunch-adagio__*`, ~95 tools.
+`~/.local/bin/jcodemunch-mcp` → uv-tool shim → Python pkg `jcodemunch_mcp` **v1.108.155** at `~/.local/share/uv/tools/jcodemunch-mcp/lib/python3.14/site-packages/`. Siblings: `jdocmunch-mcp`, `gcm`, `munch-bench`. Source repo on disk: `<local-clone-of jgravelle/jcodemunch-mcp>` (older than installed; ARCHITECTURE.md/SPEC.md still accurate). Live MCP surface = `mcp__codemunch-<host>__*`, ~95 tools.
 
 ## Capability groups
 **Indexing/lifecycle** — index_repo, index_folder, index_file, index_dependency, resolve_repo, list_repos, list_workspaces, invalidate_cache, register_edit, get_watch_status, embed_repo, import_scip, import_runtime_signal.
@@ -367,7 +367,7 @@ REPORT NOT FOUND
 - **Parser**: tree-sitter. `parser/languages.py` = 2226 lines ext→lang map with disambiguation heuristics (`.m` MATLAB/ObjC, Ansible paths, OpenAPI basenames). Plus complexity.py, fqn.py, parse_cache.py, sql_preprocessor.py, hierarchy.py, imports.py.
 - **Storage**: SQLite **WAL**, one `{repo_slug}.db` per repo under `~/.code-index/` (`CODE_INDEX_PATH` override). Tables: meta, symbols, files, imports, raw_cache, content_blob + branch_deltas/branch_meta, runtime_* (calls/edges/imports/columns/stack_events/redaction_log), scip_*. Sidecars: `.meta` (list without opening DB), `.checksum` SHA-256, `{slug}/` cached raw sources. Legacy `.json` indexes auto-migrate. LRU index cache w/ mtime invalidation, process locks, WAL checkpoint on shutdown. Symbols store byte offsets → exact retrieval by seek, no reparse.
 - **Ranking**: BM25 over symbol fields + identity signals (exact / substring / word-overlap / signature / summary / docstring) + PageRank centrality bonus (log-scaled) as tiebreaker; bounded-heap top-k. `retrieval/signal_fusion.py` = **RRF**: `score(s) = Σ weight[c] / (k + rank(c,s))` across identity / similarity(semantic) / lexical channels; weights overridable, `tune_weights` persists.
-- **Embeddings**: optional, float32 BLOBs in `symbol_embeddings` table inside the same .db (stdlib `array`, no numpy). Local ONNX all-MiniLM-L6-v2, 384-dim, ~23 MB, lazy download. ⚠️ that download breaks the largo no-local-models rule — mirror the *interface*, not the local encoder.
+- **Embeddings**: optional, float32 BLOBs in `symbol_embeddings` table inside the same .db (stdlib `array`, no numpy). Local ONNX all-MiniLM-L6-v2, 384-dim, ~23 MB, lazy download. ⚠️ that download breaks the authoring-Mac no-local-models rule — mirror the *interface*, not the local encoder.
 - **Honesty contract** (`retrieval/verdict.py`): states `ok` / `low_confidence` / `absent` / `degraded`, with scanned counts, coverage disclosure attached on absent/degraded, `did_you_mean`, versioned heuristic pin. Legacy `negative_evidence` emitted additively.
 - **Session routing**: `plan_turn` scores symbols → confidence `high|medium|low`, escalates to `none` when index says the feature doesn't exist; `max_supplementary_reads = {high:2, medium:5, low:10}`; returns recommended_symbols/files, `session_overlap` from journal, insertion-point suggestion when low/none, budget advisor at >60% used.
 - **Budget** (`tools/turn_budget.py`): turn boundary inferred from inter-call gap; `record_output()` emits `budget_warning` at >80% and on exhaustion; `should_compact()` drives auto-compaction.
@@ -390,7 +390,7 @@ REPORT NOT FOUND
 
 Bonus mapping: hotspots/churn → stale & over-edited notes; find_dead_code / find_unused_paths → orphan notes; get_dependency_cycles → circular link loops; render_diagram → vault graph views.
 
-Note: one Bash call failed mid-recon with `ENOSPC ... /private/tmp/claude-503/...` — tmp pressure on largo, retried smaller and completed. No indexing commands were run; all findings read from source.
+Note: one Bash call failed mid-recon with `ENOSPC ... /private/tmp/claude-503/...` — tmp pressure on the authoring Mac, retried smaller and completed. No indexing commands were run; all findings read from source.
 
 ## R5 — kb failure post-mortem (agent: kb-postmortem)
 
@@ -401,11 +401,11 @@ REPORT NOT FOUND
 
 # master-kb Post-Mortem v2 — empirical re-audit + formal grounding (read-only, 2026-08-11)
 
-Tooling note: codemunch could NOT index the legacy corpus — both `codemunch` and `codemunch-adagio` are hosted/remote and `resolve_repo /Users/derp/basic-memory` returns "Path does not exist". Fell back to read-only `find`/`python3` measurement (stated as required). Current master-kb sampled via kb MCP (`list_directory`, `schema_infer`, `schema_validate`).
+Tooling note: codemunch could NOT index the legacy corpus — both `codemunch` and `codemunch-remote` are hosted/remote and `resolve_repo <legacy-corpus-path>` returns "Path does not exist". Fell back to read-only `find`/`python3` measurement (stated as required). Current master-kb sampled via kb MCP (`list_directory`, `schema_infer`, `schema_validate`).
 
 ## A. Empirical inventory
 
-### A1. Legacy corpus `/Users/derp/basic-memory` — 653 .md, 8.2 MB, full census (not a sample)
+### A1. Legacy corpus `<legacy-corpus-path>` — 653 .md, 8.2 MB, full census (not a sample)
 
 | Defect | Measured |
 |---|---|

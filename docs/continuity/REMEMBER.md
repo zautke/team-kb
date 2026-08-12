@@ -2,8 +2,8 @@
 
 ## 2026-08-11
 
-- **Canonical repo**: /Volumes/MACDEV/team-kb (largo). Build copy: adagio `C:\Users\me\dev\team-kb`
-  (Windows, `ssh adagio`, dotnet 10.0.302, PowerShell default shell). largo NEVER builds (no SDK,
+- **Canonical repo**: <repo-root> (the authoring Mac). Build copy: the build host `C:\Users\me\dev\team-kb`
+  (Windows, `ssh <build-host>`, dotnet 10.0.302, PowerShell default shell). The authoring Mac NEVER builds (no SDK,
   ENOSPC-prone boot volume).
 - **The one rule of this project**: a rule not enforced by code does not belong in `_meta/`. Closed
   vocabularies live in MCP tool schemas; paths + inverse edges computed server-side; every write is

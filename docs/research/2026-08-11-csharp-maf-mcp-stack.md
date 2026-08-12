@@ -76,12 +76,12 @@ Interface: `IEmbeddingGenerator<string, Embedding<float>>`. Two remote paths, bo
 ```csharp
 // A. Any OpenAI-compatible endpoint (Ollama /v1, LM Studio, vLLM, tunnel)
 var oa = new OpenAIClient(new ApiKeyCredential("ignored"),
-    new OpenAIClientOptions { Endpoint = new Uri("https://ollama2.braisenly.com/v1") });
+    new OpenAIClientOptions { Endpoint = new Uri("https://<hosted-ollama-endpoint>/v1") });
 IEmbeddingGenerator<string, Embedding<float>> emb =
     oa.GetEmbeddingClient("embeddinggemma:cloud").AsIEmbeddingGenerator();
 
 // B. Native Ollama API — OllamaSharp 5.4.30 implements IChatClient + IEmbeddingGenerator
-var oll = new OllamaApiClient(new Uri("https://ollama2.braisenly.com"), "nomic-embed-text");
+var oll = new OllamaApiClient(new Uri("https://<hosted-ollama-endpoint>"), "nomic-embed-text");
 ```
 Feed either into `InMemoryVectorStoreOptions.EmbeddingGenerator` or a persistent store (`Microsoft.SemanticKernel.Connectors.SqliteVec 1.74.0-preview` for sqlite-vec; InMemory connector same version). Both stores speak `Microsoft.Extensions.VectorData`, so swapping is config-only.
 

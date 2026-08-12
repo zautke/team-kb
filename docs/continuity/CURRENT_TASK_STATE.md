@@ -1,6 +1,6 @@
 # CURRENT TASK STATE — team-kb
 
-**As of:** 2026-08-12 · **Repo:** /Volumes/MACDEV/team-kb (origin: github:/zautke/team-kb) · **Phase:** M0 complete, M1 next
+**As of:** 2026-08-12 · **Repo:** <repo-root> (origin: github:/zautke/team-kb) · **Phase:** M0 complete, M1 next
 
 **This is now the primary working dir.** obsidian-vault-config is retired (banner in its README).
 
@@ -8,8 +8,8 @@
 
 - Constitution v1.0.0 (`_meta/`), research dossier R1-R6 (`docs/research/` + kb `_governance/research/rebuild-2026-08/`), M0 source complete.
 - Retargeted **net10.0** (C# 14; Microsoft.Data.Sqlite + Hosting 10.0.10, ModelContextProtocol 2.1.0, xunit.v3 3.2.2). Research: `docs/research/` + plan.
-- **Build+test on adagio** (`ssh adagio`, Windows, dotnet 10.0.302, C:\Users\me\dev\team-kb): build 0 errors, **tests 18/18 pass**.
-- largo is unusable for builds: no SDK, boot disk ~200-500MB free (ENOSPC events mid-session).
+- **Build+test on the build host** (`ssh <build-host>`, Windows, dotnet 10.0.302, C:\Users\me\dev\team-kb): build 0 errors, **tests 18/18 pass**.
+- the authoring Mac is unusable for builds: no SDK, boot disk ~200-500MB free (ENOSPC events mid-session).
 
 ## Resume point
 
@@ -17,9 +17,9 @@
 Holding stdin open shows correct initialize + tools/list (all 6 tools). M0 fully verified.
 Next: M1 kickoff (embeddings, RRF, verdict contract, plan_turn router) per PLANS.
 
-## Sync ritual (largo ↔ adagio)
+## Sync ritual (the authoring Mac ↔ the build host)
 
-Edit locally → `scp <files> adagio:C:/Users/me/dev/team-kb/src/...` → `ssh adagio 'cd C:\Users\me\dev\team-kb\src; dotnet test TeamKb.sln'`.
+Edit locally → `scp <files> <build-host>:C:/Users/me/dev/team-kb/src/...` → `ssh <build-host> 'cd C:\Users\me\dev\team-kb\src; dotnet test TeamKb.sln'`.
 Beware: (a) macOS tar AppleDouble `._*` files break the build — use `COPYFILE_DISABLE=1 tar` or purge; (b) PowerShell here-strings: `\"` stays literal — ship JSON via file, never inline.
 
 ## Then

@@ -41,17 +41,17 @@ Estimated total ~600–900 notes (extrapolated). person/organization/goal/techno
 | **All relations in `REL_TYPE :: [[target]] {since:}` form** | **4/13 (31%)** |
 | Observation `[kind]` prefixes from declared vocabulary | 8/13 — off-vocab kinds found: `[install] [config] [gotcha] [internals] [project] [schema] [root-cause] [blast-radius] [mitigation] [correction] [defect] [registry] [purpose] [governance]` |
 
-Worst offenders: `protocols/non-negotiable-no-local-large-files-on-largo…` — 6 of 9 required fields missing, zero Relations section (pure orphan) despite being a machine-wide blocking protocol. `master-kb/conflict-files-obsidian-git` — Obsidian Git conflict junk committed as a KB note, 3 frontmatter fields total. Three relation dialects coexist: `REL :: [[x]] {since:}`, `REL [[x]] since:2026-05-27`, and bare `related_to [[slug]]`.
+Worst offenders: `protocols/non-negotiable-no-local-large-files…` — 6 of 9 required fields missing, zero Relations section (pure orphan) despite being a machine-wide blocking protocol. `master-kb/conflict-files-obsidian-git` — Obsidian Git conflict junk committed as a KB note, 3 frontmatter fields total. Three relation dialects coexist: `REL :: [[x]] {since:}`, `REL [[x]] since:2026-05-27`, and bare `related_to [[slug]]`.
 
 ### 3. Broken relations / orphans
 
 12 wikilink targets spot-checked by permalink → **6 broken (50%)**:
 
 - ✗ `hybrid-rag-architecture-sota-2025-2026`, `data-enrichment-flywheel-pattern`, `jcodemunch-mcp-mastery`, `notes/developer-environment-windows` — bare-slug links with no folder prefix; **the target file exists** for at least `Data Enrichment Flywheel Pattern` but the link doesn't resolve.
-- ✗ `agent-kb/operations/macos/largo-disk-space-hub` — points into the subtree **dissolved 2026-08-02**; the refile pass never rewrote inbound links.
+- ✗ `agent-kb/operations/macos/legacy-disk-space-hub` — points into the subtree **dissolved 2026-08-02**; the refile pass never rewrote inbound links.
 - ✗ `project/docker-deployment` — cited as `CAUSED ::` target from an incident; doesn't exist.
 
-Every relation sampled was **one-sided** — no back-edge on the target. `service/largo` has two separate `## Relations` sections appended by different sessions. Permalink/path divergence: `_governance/Master KB — Non-Negotiable…` has permalink `governance/…` (no `governance/` folder exists).
+Every relation sampled was **one-sided** — no back-edge on the target. `service/the authoring Mac` has two separate `## Relations` sections appended by different sessions. Permalink/path divergence: `_governance/Master KB — Non-Negotiable…` has permalink `governance/…` (no `governance/` folder exists).
 
 ### 4. Duplication / fragmentation
 

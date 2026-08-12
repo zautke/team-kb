@@ -1,4 +1,4 @@
-# M0 Verification (run on adagio or the target machine — largo has no .NET SDK and no disk headroom)
+# M0 Verification (run on the build host or the target machine — the authoring Mac has no .NET SDK and no disk headroom)
 
 Requires .NET 10 SDK (net10.0 / C# 14; verified against SDK 10.0.302, packages 10.0.10,
 ModelContextProtocol 2.1.0 native-net10.0, xunit.v3 3.2.2 — research-verified 2026-08-11).
@@ -33,7 +33,7 @@ dotnet run --project TeamKb.Mcp   # stdio server
 # enums visible in the input schemas.
 ```
 
-## Verification results (adagio, dotnet 10.0.302, 2026-08-11)
+## Verification results (build host, dotnet 10.0.302, 2026-08-11)
 
 - `dotnet build TeamKb.sln` — 0 errors (NU1903 warning: transitive SQLitePCLRaw.lib.e_sqlite3 2.1.11
   high-sev advisory GHSA-2m69-gcr7-jv3q — bump SQLitePCLRaw.bundle_e_sqlite3 explicitly in M1).
@@ -48,7 +48,7 @@ dotnet run --project TeamKb.Mcp   # stdio server
 Root cause: **test-harness stdin-EOF race, not a server bug.** Piping the JSON-RPC lines and
 closing stdin immediately shut the host down before responses flushed. Holding stdin open
 (`& { Get-Content smoke.jsonl; Start-Sleep 5 } | dotnet TeamKb.Mcp.dll`) yields correct
-behavior (verified adagio 2026-08-11):
+behavior (verified on build host 2026-08-11):
 - initialize → `{"protocolVersion":"2025-06-18", "serverInfo":{"name":"TeamKb.Mcp"}, tools:{listChanged:true}}`
 - tools/list → all 6 tools: capture_episode, propose_note, read_note, register_tag,
   search_notes, commit_note.
@@ -56,7 +56,7 @@ Real MCP clients hold stdin open for the session — no code change needed. M0 f
 
 ## Status / residual risk
 
-- Authored source-only on largo (no dotnet SDK there): **not yet compiled**. Package versions were
+- Authored source-only on the authoring Mac (no dotnet SDK there): **not yet compiled**. Package versions were
   research-verified 2026-08-11 (ModelContextProtocol 2.1.0, Microsoft.Data.Sqlite 8.x); expect at
   most minor API-shape fixes on first build.
 - `WithToolsFromAssembly()` + static tool classes with DI-injected VaultStore parameter follows the

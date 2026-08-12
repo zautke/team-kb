@@ -11,7 +11,7 @@ sources:
   - src/TeamKb.Core/ (Note, Ontology, NoteValidator, MarkdownSerializer, VaultStore)
   - src/TeamKb.Mcp/ (Program, KbTools)
   - src/TeamKb.Tests/GateTests.cs
-  - VERIFY.md (verified state, 2026-08-11, adagio)
+  - VERIFY.md (verified state, 2026-08-11, the build host)
   - docs/continuity/{PLANS,CURRENT_TASK_STATE,REMEMBER,SESSION_LOG}.md
 tags:
   - kb/whitepaper
@@ -463,10 +463,10 @@ reads — a measurable trigger, not a taste question.
 ### 5.1 The authoring/build split
 
 The development topology produced most of the bring-up defects. Source is authored on
-**largo** (macOS), which has no .NET SDK and is permanently disk-constrained — the boot volume
+**the authoring Mac** (macOS), which has no .NET SDK and is permanently disk-constrained — the boot volume
 sat between 200 and 500 MB free twice during the genesis session. Builds and tests run on
-**adagio** (Windows, .NET SDK 10.0.302, PowerShell default shell) at
-`C:\Users\me\dev\team-kb`. The ritual: edit locally, `scp` to adagio, `ssh adagio` and run
+**the build host** (Windows, .NET SDK 10.0.302, PowerShell default shell) at
+`C:\Users\me\dev\team-kb`. The ritual: edit locally, `scp` to the build host, `ssh <build-host>` and run
 `dotnet test TeamKb.sln`. Consequently *every* commit crosses a platform boundary before it is
 ever compiled — unusual exposure for an M0, and it paid for itself immediately.
 
@@ -476,7 +476,7 @@ ever compiled — unusual exposure for an M0, and it paid for itself immediately
 sidecars. Extracted under Windows they land in the project directory, the SDK's default glob
 picks up `._KbTools.cs` as a compilation item, and `csc` fails on binary garbage. Fix:
 `COPYFILE_DISABLE=1 tar`, or a purge pass on extract. A pure packaging artifact — invisible on
-macOS, invisible on Linux, fatal on Windows — that no code review on largo would surface.
+macOS, invisible on Linux, fatal on Windows — that no code review on the authoring Mac would surface.
 
 **SQLite connection pooling holds the database file open on Windows.** `GateTests` creates a
 temp-directory vault per test and deletes it in `Dispose`. On POSIX, deleting an open file is
@@ -508,24 +508,24 @@ test written on macOS could express. The argument for cross-platform CI is there
 "portability is nice." It is that a single-platform pipeline systematically cannot observe an
 entire class of defect, and the class includes real production bugs (file-handle lifetime)
 alongside merely annoying ones (resource forks). team-kb got this coverage accidentally,
-because largo cannot build. A team that can build everywhere must choose it deliberately, and
+because the authoring Mac cannot build. A team that can build everywhere must choose it deliberately, and
 the M1 exit criterion should be a CI matrix rather than a ritual.
 
 ### 5.4 Embeddings on the target machine
 
 The M1 retrieval layer needs embeddings, and the constraint landscape differs per machine.
-largo forbids local model weights outright — disk-constrained to single-digit GB, prohibition
+The authoring Mac forbids local model weights outright — disk-constrained to single-digit GB, prohibition
 absolute. The **target machine runs LM Studio with an ONNX engine**, where local inference is
 permitted, so the deployment story there is a local OpenAI-compatible endpoint. The design
 keeps this a configuration question, not an architectural one.
 `IEmbeddingGenerator<string, Embedding<float>>` from `Microsoft.Extensions.AI` 10.8.3 is the
 only interface the index layer sees. Behind it sits either an `OpenAIClient` pointed at an
-arbitrary base URI — LM Studio locally, or the `ollama2.braisenly.com` tunnel from largo — or
+arbitrary base URI — LM Studio locally, or the `<hosted-ollama-endpoint>` tunnel from the authoring Mac — or
 `OllamaSharp` 5.4.30 against the native Ollama API; both download zero weights into the
 process. The vector store is likewise abstracted: `Microsoft.Extensions.VectorData` lets
 `SqliteVec` (same file as the FTS index) and the in-memory connector swap by configuration.
 Endpoint and model name are pinned in `.env` per C-2, so the same binary runs on a laptop with
-LM Studio and on largo against the tunnel with no recompilation and no `#if`.
+LM Studio and on the authoring Mac against the tunnel with no recompilation and no `#if`.
 
 ---
 
@@ -568,7 +568,7 @@ whose companion strategy is making illegal states unconstructible.
 ### 6.2 What "verified" means here
 
 The project uses the word narrowly. Verified means **`dotnet build TeamKb.sln` → 0 errors and
-`dotnet test TeamKb.sln` → 18/18 pass, on adagio, .NET SDK 10.0.302, 2026-08-11**, with the
+`dotnet test TeamKb.sln` → 18/18 pass, on the build host, .NET SDK 10.0.302, 2026-08-11**, with the
 three bring-up fixes in place. It does not mean the MCP handshake works (VERIFY.md carries
 that as an open issue with a named debug plan), nor that the vault-rebuild path is exercised
 (§2.2), nor that the package advisory is cleared (NU1903, logged against M1).

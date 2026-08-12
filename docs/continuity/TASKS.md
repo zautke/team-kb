@@ -6,7 +6,7 @@
 - [x] Constitution v1.0.0 set (_meta/: constitution, ontology, memory-model, maintenance, tag registry, versions)
 - [x] M0 source: TeamKb.Core / TeamKb.Mcp / TeamKb.Tests
 - [x] net10.0 retarget (verified versions; xunit.v3)
-- [x] adagio build pipeline (ssh adagio; C:\Users\me\dev\team-kb) — build 0 err, tests 18/18
+- [x] the build host build pipeline (ssh <build-host>; C:\Users\me\dev\team-kb) — build 0 err, tests 18/18
 - [x] Bring-up fixes: ClearPool teardown lock; C7 unanchored scope regex; FTS5 token quoting; MCP logs→stderr
 
 ## Open
@@ -15,7 +15,7 @@
 - [ ] Bump SQLitePCLRaw.bundle_e_sqlite3 (NU1903 GHSA-2m69-gcr7-jv3q)
 - [x] GitHub remote added + pushed (github:/zautke/team-kb, 2026-08-12)
 - [ ] M1 kickoff (see PLANS)
-- [ ] Re-sync adagio: replace scp-patched copy with git clone from origin
+- [ ] Re-sync build host: replace scp-patched copy with git clone from origin
 
 ## Blocked-until
 

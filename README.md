@@ -30,6 +30,6 @@ src/             # .NET solution: TeamKb.Mcp (M0 server), TeamKb.Core, tests
 M0 core store+gates → M1 hybrid retrieval → M2 Neo4j graph → M3 self-learning loops → M4 specialist
 MAF agents → M5 code-graph integration. M0 is usable alone.
 
-## Building (target machine; not on largo)
+## Building (target machine; not on the authoring Mac)
 
 Requires .NET 8 SDK. `dotnet build && dotnet test` from `src/`.

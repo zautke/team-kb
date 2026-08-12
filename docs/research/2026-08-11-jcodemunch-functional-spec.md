@@ -12,7 +12,7 @@ tags: [research, rebuild, dossier-2026-08]
 # jcodemunch — functional spec (read-only recon, verified from source)
 
 ## Identity
-`~/.local/bin/jcodemunch-mcp` → uv-tool shim → Python pkg `jcodemunch_mcp` **v1.108.155** at `~/.local/share/uv/tools/jcodemunch-mcp/lib/python3.14/site-packages/`. Siblings: `jdocmunch-mcp`, `gcm`, `munch-bench`. Source repo on disk: `/Volumes/MACDEV/jgravelle#jcodemunch-mcp` (older than installed; ARCHITECTURE.md/SPEC.md still accurate). Live MCP surface = `mcp__codemunch-adagio__*`, ~95 tools.
+`~/.local/bin/jcodemunch-mcp` → uv-tool shim → Python pkg `jcodemunch_mcp` **v1.108.155** at `~/.local/share/uv/tools/jcodemunch-mcp/lib/python3.14/site-packages/`. Siblings: `jdocmunch-mcp`, `gcm`, `munch-bench`. Source repo on disk: `<local-clone-of jgravelle/jcodemunch-mcp>` (older than installed; ARCHITECTURE.md/SPEC.md still accurate). Live MCP surface = `mcp__codemunch-<host>__*`, ~95 tools.
 
 ## Capability groups
 **Indexing/lifecycle** — index_repo, index_folder, index_file, index_dependency, resolve_repo, list_repos, list_workspaces, invalidate_cache, register_edit, get_watch_status, embed_repo, import_scip, import_runtime_signal.
@@ -26,7 +26,7 @@ tags: [research, rebuild, dossier-2026-08]
 - **Parser**: tree-sitter. `parser/languages.py` = 2226 lines ext→lang map with disambiguation heuristics (`.m` MATLAB/ObjC, Ansible paths, OpenAPI basenames). Plus complexity.py, fqn.py, parse_cache.py, sql_preprocessor.py, hierarchy.py, imports.py.
 - **Storage**: SQLite **WAL**, one `{repo_slug}.db` per repo under `~/.code-index/` (`CODE_INDEX_PATH` override). Tables: meta, symbols, files, imports, raw_cache, content_blob + branch_deltas/branch_meta, runtime_* (calls/edges/imports/columns/stack_events/redaction_log), scip_*. Sidecars: `.meta` (list without opening DB), `.checksum` SHA-256, `{slug}/` cached raw sources. Legacy `.json` indexes auto-migrate. LRU index cache w/ mtime invalidation, process locks, WAL checkpoint on shutdown. Symbols store byte offsets → exact retrieval by seek, no reparse.
 - **Ranking**: BM25 over symbol fields + identity signals (exact / substring / word-overlap / signature / summary / docstring) + PageRank centrality bonus (log-scaled) as tiebreaker; bounded-heap top-k. `retrieval/signal_fusion.py` = **RRF**: `score(s) = Σ weight[c] / (k + rank(c,s))` across identity / similarity(semantic) / lexical channels; weights overridable, `tune_weights` persists.
-- **Embeddings**: optional, float32 BLOBs in `symbol_embeddings` table inside the same .db (stdlib `array`, no numpy). Local ONNX all-MiniLM-L6-v2, 384-dim, ~23 MB, lazy download. ⚠️ that download breaks the largo no-local-models rule — mirror the *interface*, not the local encoder.
+- **Embeddings**: optional, float32 BLOBs in `symbol_embeddings` table inside the same .db (stdlib `array`, no numpy). Local ONNX all-MiniLM-L6-v2, 384-dim, ~23 MB, lazy download. ⚠️ that download breaks the authoring-Mac no-local-models rule — mirror the *interface*, not the local encoder.
 - **Honesty contract** (`retrieval/verdict.py`): states `ok` / `low_confidence` / `absent` / `degraded`, with scanned counts, coverage disclosure attached on absent/degraded, `did_you_mean`, versioned heuristic pin. Legacy `negative_evidence` emitted additively.
 - **Session routing**: `plan_turn` scores symbols → confidence `high|medium|low`, escalates to `none` when index says the feature doesn't exist; `max_supplementary_reads = {high:2, medium:5, low:10}`; returns recommended_symbols/files, `session_overlap` from journal, insertion-point suggestion when low/none, budget advisor at >60% used.
 - **Budget** (`tools/turn_budget.py`): turn boundary inferred from inter-call gap; `record_output()` emits `budget_warning` at >80% and on exhaustion; `should_compact()` drives auto-compaction.
@@ -49,4 +49,4 @@ tags: [research, rebuild, dossier-2026-08]
 
 Bonus mapping: hotspots/churn → stale & over-edited notes; find_dead_code / find_unused_paths → orphan notes; get_dependency_cycles → circular link loops; render_diagram → vault graph views.
 
-Note: one Bash call failed mid-recon with `ENOSPC ... /private/tmp/claude-503/...` — tmp pressure on largo, retried smaller and completed. No indexing commands were run; all findings read from source.
+Note: one Bash call failed mid-recon with `ENOSPC ... /private/tmp/claude-503/...` — tmp pressure on the authoring Mac, retried smaller and completed. No indexing commands were run; all findings read from source.
