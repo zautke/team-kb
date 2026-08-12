@@ -226,8 +226,19 @@ class EmbedError(Exception):
     pass
 
 
+EMBED_BATCH = 8       # large batches time out on the hosted MoE model
+EMBED_TIMEOUT = 90
+
+
 def embed_texts(texts, prefix):
-    """Batch-embed via Ollama /api/embed. Returns list of L2-normalized vectors."""
+    """Batch-embed via Ollama /api/embed (sub-batched). L2-normalized vectors."""
+    out = []
+    for i in range(0, len(texts), EMBED_BATCH):
+        out.extend(_embed_batch(texts[i:i + EMBED_BATCH], prefix))
+    return out
+
+
+def _embed_batch(texts, prefix):
     body = json.dumps({"model": EMBED_MODEL, "input": [prefix + t for t in texts]}).encode()
     # Cloudflare rejects urllib's default "Python-urllib/x" User-Agent with 403.
     req = urllib.request.Request(f"{EMBED_URL}/api/embed", data=body,
@@ -236,10 +247,9 @@ def embed_texts(texts, prefix):
     last = None
     for attempt in range(3):
         try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            with urllib.request.urlopen(req, timeout=EMBED_TIMEOUT) as resp:
                 data = json.loads(resp.read())
-            vecs = data["embeddings"]
-            return [l2norm(v) for v in vecs]
+            return [l2norm(v) for v in data["embeddings"]]
         except (urllib.error.URLError, TimeoutError, KeyError, json.JSONDecodeError) as e:
             last = e
             log.warning("embed attempt %d failed: %s", attempt + 1, e)

@@ -61,3 +61,38 @@ Real MCP clients hold stdin open for the session — no code change needed. M0 f
   most minor API-shape fixes on first build.
 - `WithToolsFromAssembly()` + static tool classes with DI-injected VaultStore parameter follows the
   SDK 2.x sample pattern; verify parameter binding on first run.
+
+---
+
+# M0.5 Verification — Python plugin stack + E2E battery (2026-08-12, authoring Mac, python3 stdlib only)
+
+The C# stack above is frozen reference; the live path is `plugin/mcp/teamkb_server.py`
+(zero-dependency port + battery surface). Full evidence: `docs/test-battery/run-2026-08-12/`.
+
+## Unit suite (ported GateTests + serializer parity + battery surface + protocol)
+
+```bash
+cd plugin/mcp && python3 -m unittest test_teamkb_server -v
+# Ran 31 tests ... OK          (05-unittest.log)
+```
+
+## MCP handshake smoke (stdin held open — see M0.1 lesson)
+
+initialize → serverInfo teamkb/1.0.0, protocolVersion 2025-06-18; tools/list → 14 tools
+with enum arrays in inputSchema (C1/C6 tier-1 enforcement visible at the API);
+tools/call search_notes on empty vault → `verdict: absent`; `server/discover` → clean -32601.
+
+## E2E battery (vault ~/vault/kb-test; hosted nomic-embed-text-v2-moe)
+
+- Ingested through full gated pipeline: 3 genesis anchors + 13 documents
+  (7 research + 6 whitepapers) + 13 DCF episodes + battery episode.
+  Final index: 30 notes, 23 edges, 291 chunks, 13 doc embeddings, 14 tags.
+- Iteration 1 → 5 whitepaper embed timeouts → sub-batching fix + resume path →
+  iteration 2 all committed. Anchors idempotently C2-rejected on rerun.
+- θ_semantic calibrated 0.45 → 0.30 (true-match floor 0.30, true-absent ceiling 0.163).
+- **Deterministic gate PASS**: 13/13 docs retrieved by all 4 modalities
+  (FTS, semantic, tag, graph); zero false absents; both expected-absent probes honest.
+  GA mean alignment score 0.99 (scorecard.md).
+- Back-pass verified: add_relations wrote markdown + edge; inverse backlink computed.
+- Sample rendered note: 07-sample-note.md (full frontmatter, kb/* tag plane,
+  wikilink relations, typed observations).

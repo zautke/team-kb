@@ -1,0 +1,46 @@
+test_add_relations_gated_and_written (test_teamkb_server.BatterySurface.test_add_relations_gated_and_written) ... ok
+test_chunking_heading_aware_with_overlap (test_teamkb_server.BatterySurface.test_chunking_heading_aware_with_overlap) ... ok
+test_ingest_failure_marks_failed (test_teamkb_server.BatterySurface.test_ingest_failure_marks_failed) ... ok
+test_ingest_semantic_and_link (test_teamkb_server.BatterySurface.test_ingest_semantic_and_link) ... ok
+test_register_tag_hardening (test_teamkb_server.BatterySurface.test_register_tag_hardening) ... ok
+test_reindex_report (test_teamkb_server.BatterySurface.test_reindex_report) ... ok
+test_search_by_tag_and_prefix (test_teamkb_server.BatterySurface.test_search_by_tag_and_prefix) ... ok
+test_submit_dedupe_and_scope (test_teamkb_server.BatterySurface.test_submit_dedupe_and_scope) ... ok
+test_backlinks_are_computed (test_teamkb_server.GateTests.test_backlinks_are_computed) ... ok
+test_commit_revalidates (test_teamkb_server.GateTests.test_commit_revalidates) ... ok
+test_dangling_relation_target_rejected (test_teamkb_server.GateTests.test_dangling_relation_target_rejected) ... ok
+test_edge_signature_violation_rejected (test_teamkb_server.GateTests.test_edge_signature_violation_rejected) ... ok
+test_episode_capture_append_only (test_teamkb_server.GateTests.test_episode_capture_append_only) ... ok
+test_exact_permalink_collision_rejected (test_teamkb_server.GateTests.test_exact_permalink_collision_rejected) ... ok
+test_hypothesis_high_confidence_rejected (test_teamkb_server.GateTests.test_hypothesis_high_confidence_rejected) ... ok
+test_missing_provenance_rejected (test_teamkb_server.GateTests.test_missing_provenance_rejected) ... ok
+test_near_duplicate_title_rejected (test_teamkb_server.GateTests.test_near_duplicate_title_rejected) ... ok
+test_path_derived_from_class (test_teamkb_server.GateTests.test_path_derived_from_class) ... ok
+test_placeholder_provenance_rejected (test_teamkb_server.GateTests.test_placeholder_provenance_rejected) ... ok
+test_scope_predicate (test_teamkb_server.GateTests.test_scope_predicate) ... ok
+test_search_finds_committed (test_teamkb_server.GateTests.test_search_finds_committed) ... ok
+test_search_kebab_token_quoted (test_teamkb_server.GateTests.test_search_kebab_token_quoted) ... ok
+test_unlinked_unjustified_rejected (test_teamkb_server.GateTests.test_unlinked_unjustified_rejected) ... ok
+test_unregistered_tag_rejected (test_teamkb_server.GateTests.test_unregistered_tag_rejected) ... ok
+test_initialize_tools_list_call (test_teamkb_server.ProtocolTests.test_initialize_tools_list_call) ... ok
+test_tool_error_is_content_not_protocol_error (test_teamkb_server.ProtocolTests.test_tool_error_is_content_not_protocol_error) ... [teamkb] ERROR tool commit_note failed
+Traceback (most recent call last):
+  File "/Volumes/MACDEV/team-kb/plugin/mcp/teamkb_server.py", line 888, in handle
+    text = TOOLS[name]["fn"](store, args)
+  File "/Volumes/MACDEV/team-kb/plugin/mcp/teamkb_server.py", line 515, in t_commit_note
+    return "COMMITTED " + store.commit_note(a["proposalId"])
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Volumes/MACDEV/team-kb/plugin/mcp/teamkb_server.py", line 398, in commit_note
+    raise ValueError(f"No staged proposal '{pid}'.")
+ValueError: No staged proposal 'prop-x'.
+ok
+test_unknown_method_clean_error (test_teamkb_server.ProtocolTests.test_unknown_method_clean_error) ... ok
+test_confidence_format (test_teamkb_server.SerializerParity.test_confidence_format) ... ok
+test_frontmatter_shape (test_teamkb_server.SerializerParity.test_frontmatter_shape) ... ok
+test_normalize_title (test_teamkb_server.SerializerParity.test_normalize_title) ... ok
+test_screaming_snake (test_teamkb_server.SerializerParity.test_screaming_snake) ... ok
+
+----------------------------------------------------------------------
+Ran 31 tests in 0.108s
+
+OK

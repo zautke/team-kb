@@ -1,0 +1,104 @@
+== register tags
+  REGISTERED domain/knowledge-graphs
+  REGISTERED domain/agent-memory
+  REGISTERED domain/curation
+  REGISTERED domain/dotnet
+  REGISTERED domain/obsidian
+  REGISTERED domain/code-cartography
+  REGISTERED project/team-kb
+== genesis anchors
+  Stratified Memory Organism: STAGED prop-20260812210044245559 → knowledge/concept/stratified-memory-organism. Call commit_note to finalize.
+    COMMITTED knowledge/concept/stratified-memory-organism
+  Gates as Code: STAGED prop-20260812210044246534 → knowledge/concept/gates-as-code. Call commit_note to finalize.
+    COMMITTED knowledge/concept/gates-as-code
+  Verdict Honesty Contract: STAGED prop-20260812210044247430 → knowledge/concept/verdict-honesty-contract. Call commit_note to finalize.
+    COMMITTED knowledge/concept/verdict-honesty-contract
+== documents (submit → chunks/embed → neighbors → propose → commit → link → DCF)
+-- docs/research/2026-08-11-self-evolving-kg-systems.md
+  submit: {"submission_id": "sub-20260812210044248", "source_path": "/Volumes/MACDEV/team-kb/docs/research/2026-08-11-self-evolvin
+  chunks: {"submission_id": "sub-20260812210044248", "chunks": 8, "dim": 768, "headings": ["(preamble)", "Ranked 10", "Ranked 10",
+  neighbors: verdict: absent — no semantic neighbors above θ=0.45 (top score 0.000). The knowledge likely does not exist yet.
+  tag suggestions: 0.522  project/team-kb | 0.467  domain/agent-memory | 0.428  domain/knowledge-graphs | 0.401  domain/code-cartography
+  propose: STAGED prop-20260812210128279646 → knowledge/artifact/survey-of-self-evolving-knowledge-graph-systems. Call commit_note to finalize.
+  COMMITTED knowledge/artifact/survey-of-self-evolving-knowledge-graph-systems
+  LINKED sub-20260812210044248 → knowledge/artifact/survey-of-self-evolving-knowledge-graph-systems
+  dcf: CAPTURED episodes/dcf-sub-20260812210044248
+-- docs/research/2026-08-11-agentic-self-learning-loops.md
+  submit: {"submission_id": "sub-20260812210128284", "source_path": "/Volumes/MACDEV/team-kb/docs/research/2026-08-11-agentic-self
+  chunks: {"submission_id": "sub-20260812210128284", "chunks": 7, "dim": 768, "headings": ["(preamble)", "10 most proven no-weight
+  neighbors: verdict: ok | 0.895  knowledge/artifact/survey-of-self-evolving-knowledge-graph-systems
+  tag suggestions: 0.425  project/team-kb | 0.419  domain/agent-memory | 0.338  domain/knowledge-graphs | 0.305  domain/curation
+  propose: STAGED prop-20260812210155314583 → knowledge/artifact/survey-of-agentic-self-learning-loops. Call commit_note to finalize.
+  COMMITTED knowledge/artifact/survey-of-agentic-self-learning-loops
+  LINKED sub-20260812210128284 → knowledge/artifact/survey-of-agentic-self-learning-loops
+  dcf: CAPTURED episodes/dcf-sub-20260812210128284
+-- docs/research/2026-08-11-csharp-maf-mcp-stack.md
+  submit: {"submission_id": "sub-20260812210155321", "source_path": "/Volumes/MACDEV/team-kb/docs/research/2026-08-11-csharp-maf-m
+  chunks: {"submission_id": "sub-20260812210155321", "chunks": 8, "dim": 768, "headings": ["(preamble)", "1. MAF status / version 
+  neighbors: verdict: ok | 0.732  knowledge/artifact/survey-of-agentic-self-learning-loops | 0.720  knowledge/artifact/survey-of-self-evolving-knowledge-graph-systems
+  tag suggestions: 0.448  domain/dotnet | 0.383  project/team-kb | 0.369  source/web | 0.364  source/code
+  propose: STAGED prop-20260812210224055773 → knowledge/artifact/c-maf-agents-as-mcp-tools-stack-research. Call commit_note to finalize.
+  COMMITTED knowledge/artifact/c-maf-agents-as-mcp-tools-stack-research
+  LINKED sub-20260812210155321 → knowledge/artifact/c-maf-agents-as-mcp-tools-stack-research
+  dcf: CAPTURED episodes/dcf-sub-20260812210155321
+-- docs/research/2026-08-11-jcodemunch-functional-spec.md
+  submit: {"submission_id": "sub-20260812210224058", "source_path": "/Volumes/MACDEV/team-kb/docs/research/2026-08-11-jcodemunch-f
+  chunks: {"submission_id": "sub-20260812210224058", "chunks": 7, "dim": 768, "headings": ["(preamble)", "jcodemunch \u2014 functi
+  neighbors: verdict: ok | 0.802  knowledge/artifact/survey-of-self-evolving-knowledge-graph-systems | 0.794  knowledge/artifact/survey-of-agentic-self-learning-loops | 0.75
+  tag suggestions: 0.501  domain/code-cartography | 0.397  source/code | 0.376  project/team-kb | 0.347  source/web
+  propose: STAGED prop-20260812210249734599 → knowledge/artifact/jcodemunch-functional-spec-recon. Call commit_note to finalize.
+  COMMITTED knowledge/artifact/jcodemunch-functional-spec-recon
+  LINKED sub-20260812210224058 → knowledge/artifact/jcodemunch-functional-spec-recon
+  dcf: CAPTURED episodes/dcf-sub-20260812210224058
+-- docs/research/2026-08-11-kb-failure-postmortem-v1.md
+  submit: {"submission_id": "sub-20260812210249739", "source_path": "/Volumes/MACDEV/team-kb/docs/research/2026-08-11-kb-failure-p
+  chunks: {"submission_id": "sub-20260812210249739", "chunks": 8, "dim": 768, "headings": ["(preamble)", "kb (master-kb) failure a
+  neighbors: verdict: ok | 0.837  knowledge/artifact/jcodemunch-functional-spec-recon | 0.796  knowledge/artifact/survey-of-self-evolving-knowledge-graph-systems | 0.791  kn
+  tag suggestions: 0.440  project/team-kb | 0.396  domain/curation | 0.336  source/session | 0.331  domain/agent-memory
+  propose: STAGED prop-20260812210315738739 → knowledge/artifact/master-kb-empirical-failure-audit. Call commit_note to finalize.
+  COMMITTED knowledge/artifact/master-kb-empirical-failure-audit
+  LINKED sub-20260812210249739 → knowledge/artifact/master-kb-empirical-failure-audit
+  dcf: CAPTURED episodes/dcf-sub-20260812210249739
+-- docs/research/2026-08-11-kb-failure-postmortem-v2-formal.md
+  submit: {"submission_id": "sub-20260812210315741", "source_path": "/Volumes/MACDEV/team-kb/docs/research/2026-08-11-kb-failure-p
+  chunks: {"submission_id": "sub-20260812210315741", "chunks": 11, "dim": 768, "headings": ["(preamble)", "master-kb Post-Mortem v
+  neighbors: verdict: ok | 0.916  knowledge/artifact/master-kb-empirical-failure-audit | 0.862  knowledge/artifact/jcodemunch-functional-spec-recon | 0.837  knowledge/artifa
+  tag suggestions: 0.331  domain/curation | 0.312  project/team-kb | 0.302  status/anchor | 0.297  domain/obsidian
+  propose: STAGED prop-20260812210345950491 → knowledge/artifact/master-kb-formal-post-mortem-model. Call commit_note to finalize.
+  COMMITTED knowledge/artifact/master-kb-formal-post-mortem-model
+  LINKED sub-20260812210315741 → knowledge/artifact/master-kb-formal-post-mortem-model
+  dcf: CAPTURED episodes/dcf-sub-20260812210315741
+-- docs/research/2026-08-11-obsidian-integration.md
+  submit: {"submission_id": "sub-20260812210345954", "source_path": "/Volumes/MACDEV/team-kb/docs/research/2026-08-11-obsidian-int
+  chunks: {"submission_id": "sub-20260812210345954", "chunks": 6, "dim": 768, "headings": ["R7 \u2014 Obsidian as the tooled UI fo
+  neighbors: verdict: ok | 0.775  knowledge/artifact/master-kb-empirical-failure-audit | 0.772  knowledge/artifact/master-kb-formal-post-mortem-model | 0.772  knowledge/arti
+  tag suggestions: 0.561  domain/obsidian | 0.421  project/team-kb | 0.388  domain/code-cartography | 0.355  domain/curation
+  propose: STAGED prop-20260812210409249928 → knowledge/artifact/obsidian-integration-research. Call commit_note to finalize.
+  COMMITTED knowledge/artifact/obsidian-integration-research
+  LINKED sub-20260812210345954 → knowledge/artifact/obsidian-integration-research
+  dcf: CAPTURED episodes/dcf-sub-20260812210345954
+-- docs/whitepapers/01-formal-graph-theory.md
+  submit: {"submission_id": "sub-20260812210409255", "source_path": "/Volumes/MACDEV/team-kb/docs/whitepapers/01-formal-graph-theo
+  chunks: FAILED: embedding endpoint failed after 3 attempts: The read operation timed out — submission marked failed; rerun after
+-- docs/whitepapers/02-memory-model.md
+  submit: {"submission_id": "sub-20260812210539590", "source_path": "/Volumes/MACDEV/team-kb/docs/whitepapers/02-memory-model.md",
+  chunks: FAILED: embedding endpoint failed after 3 attempts: The read operation timed out — submission marked failed; rerun after
+-- docs/whitepapers/03-curation-tactics.md
+  submit: {"submission_id": "sub-20260812210709926", "source_path": "/Volumes/MACDEV/team-kb/docs/whitepapers/03-curation-tactics.
+  chunks: FAILED: embedding endpoint failed after 3 attempts: The read operation timed out — submission marked failed; rerun after
+-- docs/whitepapers/04-self-learning-loops.md
+  submit: {"submission_id": "sub-20260812210840293", "source_path": "/Volumes/MACDEV/team-kb/docs/whitepapers/04-self-learning-loo
+  chunks: FAILED: embedding endpoint failed after 3 attempts: The read operation timed out — submission marked failed; rerun after
+-- docs/whitepapers/05-csharp-maf-mcp-architecture.md
+  submit: {"submission_id": "sub-20260812211010603", "source_path": "/Volumes/MACDEV/team-kb/docs/whitepapers/05-csharp-maf-mcp-ar
+  chunks: FAILED: embedding endpoint failed after 3 attempts: The read operation timed out — submission marked failed; rerun after
+-- docs/whitepapers/06-code-cartography.md
+  submit: {"submission_id": "sub-20260812211140839", "source_path": "/Volumes/MACDEV/team-kb/docs/whitepapers/06-code-cartography.
+  chunks: {"submission_id": "sub-20260812211140839", "chunks": 31, "dim": 768, "headings": ["(preamble)", "Code Cartography", "Cod
+  neighbors: verdict: ok | 0.882  knowledge/artifact/master-kb-formal-post-mortem-model | 0.866  knowledge/artifact/jcodemunch-functional-spec-recon | 0.857  knowledge/artif
+  tag suggestions: 0.562  domain/code-cartography | 0.475  project/team-kb | 0.401  domain/knowledge-graphs | 0.365  source/code
+  propose: STAGED prop-20260812211220830023 → knowledge/artifact/code-cartography-whitepaper. Call commit_note to finalize.
+  COMMITTED knowledge/artifact/code-cartography-whitepaper
+  LINKED sub-20260812211140839 → knowledge/artifact/code-cartography-whitepaper
+  dcf: CAPTURED episodes/dcf-sub-20260812211140839
+== reindex: {"vault": "/Users/derp/vault/kb-test", "notes": 19, "edges": 10, "chunks": 291, "doc_embeddings": 8, "tags": 14, "missing_files": [], "embed_pending": []}

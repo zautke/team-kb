@@ -1,0 +1,80 @@
+== register tags
+  REGISTERED domain/knowledge-graphs
+  REGISTERED domain/agent-memory
+  REGISTERED domain/curation
+  REGISTERED domain/dotnet
+  REGISTERED domain/obsidian
+  REGISTERED domain/code-cartography
+  REGISTERED project/team-kb
+== genesis anchors
+  Stratified Memory Organism: REJECTED:
+  Gates as Code: REJECTED:
+  Verdict Honesty Contract: REJECTED:
+== documents (submit → chunks/embed → neighbors → propose → commit → link → DCF)
+-- docs/research/2026-08-11-self-evolving-kg-systems.md
+  submit: DUPLICATE: submission sub-20260812210044248 (status committed) already covers this content.
+-- docs/research/2026-08-11-agentic-self-learning-loops.md
+  submit: DUPLICATE: submission sub-20260812210128284 (status committed) already covers this content.
+-- docs/research/2026-08-11-csharp-maf-mcp-stack.md
+  submit: DUPLICATE: submission sub-20260812210155321 (status committed) already covers this content.
+-- docs/research/2026-08-11-jcodemunch-functional-spec.md
+  submit: DUPLICATE: submission sub-20260812210224058 (status committed) already covers this content.
+-- docs/research/2026-08-11-kb-failure-postmortem-v1.md
+  submit: DUPLICATE: submission sub-20260812210249739 (status committed) already covers this content.
+-- docs/research/2026-08-11-kb-failure-postmortem-v2-formal.md
+  submit: DUPLICATE: submission sub-20260812210315741 (status committed) already covers this content.
+-- docs/research/2026-08-11-obsidian-integration.md
+  submit: DUPLICATE: submission sub-20260812210345954 (status committed) already covers this content.
+-- docs/whitepapers/01-formal-graph-theory.md
+  submit: DUPLICATE: submission sub-20260812210409255 (status failed) already covers this content.
+  resuming sub-20260812210409255
+  chunks: {"submission_id": "sub-20260812210409255", "chunks": 50, "dim": 768, "headings": ["(preamble)", "The Formal Theory of th
+  neighbors: verdict: ok | 0.883  knowledge/artifact/code-cartography-whitepaper | 0.879  knowledge/artifact/master-kb-formal-post-mortem-model | 0.818  knowledge/artifact/s
+  tag suggestions: 0.498  domain/knowledge-graphs | 0.438  domain/curation | 0.415  domain/code-cartography | 0.414  status/draft
+  propose: STAGED prop-20260812211521827160 → knowledge/artifact/the-formal-theory-of-the-team-kb-knowledge-graph. Call commit_note to finalize.
+  COMMITTED knowledge/artifact/the-formal-theory-of-the-team-kb-knowledge-graph
+  LINKED sub-20260812210409255 → knowledge/artifact/the-formal-theory-of-the-team-kb-knowledge-graph
+  dcf: CAPTURED episodes/dcf-sub-20260812210409255
+-- docs/whitepapers/02-memory-model.md
+  submit: DUPLICATE: submission sub-20260812210539590 (status failed) already covers this content.
+  resuming sub-20260812210539590
+  chunks: {"submission_id": "sub-20260812210539590", "chunks": 38, "dim": 768, "headings": ["(preamble)", "The Stratified Memory O
+  neighbors: verdict: ok | 0.921  knowledge/artifact/the-formal-theory-of-the-team-kb-knowledge-graph | 0.910  knowledge/artifact/code-cartography-whitepaper | 0.884  knowle
+  tag suggestions: 0.520  project/team-kb | 0.395  domain/agent-memory | 0.384  domain/knowledge-graphs | 0.373  domain/curation
+  propose: STAGED prop-20260812211659698307 → knowledge/artifact/the-stratified-memory-organism-whitepaper. Call commit_note to finalize.
+  COMMITTED knowledge/artifact/the-stratified-memory-organism-whitepaper
+  LINKED sub-20260812210539590 → knowledge/artifact/the-stratified-memory-organism-whitepaper
+  dcf: CAPTURED episodes/dcf-sub-20260812210539590
+-- docs/whitepapers/03-curation-tactics.md
+  submit: DUPLICATE: submission sub-20260812210709926 (status failed) already covers this content.
+  resuming sub-20260812210709926
+  chunks: {"submission_id": "sub-20260812210709926", "chunks": 42, "dim": 768, "headings": ["(preamble)", "Curation Tactics", "Cur
+  neighbors: verdict: ok | 0.928  knowledge/artifact/the-stratified-memory-organism-whitepaper | 0.920  knowledge/artifact/master-kb-formal-post-mortem-model | 0.918  knowle
+  tag suggestions: 0.467  project/team-kb | 0.411  domain/curation | 0.314  domain/knowledge-graphs | 0.294  domain/code-cartography
+  propose: STAGED prop-20260812211842336703 → knowledge/artifact/curation-tactics-whitepaper. Call commit_note to finalize.
+  COMMITTED knowledge/artifact/curation-tactics-whitepaper
+  LINKED sub-20260812210709926 → knowledge/artifact/curation-tactics-whitepaper
+  dcf: CAPTURED episodes/dcf-sub-20260812210709926
+-- docs/whitepapers/04-self-learning-loops.md
+  submit: DUPLICATE: submission sub-20260812210840293 (status failed) already covers this content.
+  resuming sub-20260812210840293
+  chunks: {"submission_id": "sub-20260812210840293", "chunks": 41, "dim": 768, "headings": ["(preamble)", "Self-Learning and Self-
+  neighbors: verdict: ok | 0.930  knowledge/artifact/the-stratified-memory-organism-whitepaper | 0.915  knowledge/artifact/curation-tactics-whitepaper | 0.890  knowledge/art
+  tag suggestions: 0.539  project/team-kb | 0.493  domain/agent-memory | 0.397  domain/knowledge-graphs | 0.394  domain/curation
+  propose: STAGED prop-20260812212028732180 → knowledge/artifact/self-learning-loops-whitepaper. Call commit_note to finalize.
+  COMMITTED knowledge/artifact/self-learning-loops-whitepaper
+  LINKED sub-20260812210840293 → knowledge/artifact/self-learning-loops-whitepaper
+  dcf: CAPTURED episodes/dcf-sub-20260812210840293
+-- docs/whitepapers/05-csharp-maf-mcp-architecture.md
+  submit: DUPLICATE: submission sub-20260812211010603 (status failed) already covers this content.
+  resuming sub-20260812211010603
+  chunks: {"submission_id": "sub-20260812211010603", "chunks": 34, "dim": 768, "headings": ["(preamble)", "The C#/MAF/MCP Implemen
+  neighbors: verdict: ok | 0.935  knowledge/artifact/curation-tactics-whitepaper | 0.916  knowledge/artifact/code-cartography-whitepaper | 0.906  knowledge/artifact/the-stra
+  tag suggestions: 0.513  domain/dotnet | 0.493  project/team-kb | 0.469  domain/knowledge-graphs | 0.456  domain/curation
+  propose: STAGED prop-20260812212200331278 → knowledge/artifact/c-maf-mcp-architecture-whitepaper. Call commit_note to finalize.
+  COMMITTED knowledge/artifact/c-maf-mcp-architecture-whitepaper
+  LINKED sub-20260812211010603 → knowledge/artifact/c-maf-mcp-architecture-whitepaper
+  dcf: CAPTURED episodes/dcf-sub-20260812211010603
+-- docs/whitepapers/06-code-cartography.md
+  submit: DUPLICATE: submission sub-20260812211140839 (status committed) already covers this content.
+== reindex: {"vault": "/Users/derp/vault/kb-test", "notes": 29, "edges": 22, "chunks": 291, "doc_embeddings": 13, "tags": 14, "missing_files": [], "embed_pending": []}
