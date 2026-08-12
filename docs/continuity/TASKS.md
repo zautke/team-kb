@@ -19,11 +19,12 @@
 
 ## Open (2026-08-12 — plugin pivot, approved plan)
 
-- [ ] Phase 1: vault bootstrap (repo vault/ + ~/vault/kb-test, parameterized)
-- [ ] Phase 2: plugin/ — teamkb_server.py (12 tools, 8 gates byte-parity §F) + unittest + agents + skills + hooks + commands
-- [ ] Phase 3: .github Copilot agents/skills (verify .agent.md fields from official docs first)
-- [ ] Phase 4: E2E battery ≥5 docs (Appendix A/B), iterate until deterministic gate green
-- [ ] Phase 5: evidence → docs/test-battery/run-<date>/ + VERIFY.md + commits
+- [x] Phase 1: vault bootstrap (repo vault/ + ~/vault/kb-test) — bfd2da8
+- [x] Phase 2: plugin/ — teamkb_server.py (14 tools, 8 gates byte-parity) + 31 unittests + agents + skills + hooks
+- [x] Phase 3: .github Copilot agents/skills (.agent.md spec verified from docs.github.com)
+- [x] Phase 4: E2E battery — 13 docs, deterministic gate PASS after 2 iterations (embed sub-batching, resume, θ=0.30)
+- [x] Phase 5: evidence docs/test-battery/run-2026-08-12/ + VERIFY.md M0.5 section
+- [ ] First real ingestion into repo vault/ (battery ran vs ~/vault/kb-test)
 - Deferred (M1+): ANN, RRF, md→Note parser/full rebuild, submission GC, Copilot full battery, 4-value verdict, decay/MemRL, C4 auto-stub, tag-registry migrations
 
 ## Blocked-until

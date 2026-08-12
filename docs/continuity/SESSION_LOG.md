@@ -1,5 +1,15 @@
 # SESSION LOG — team-kb (newest first)
 
+## 2026-08-12 (evening) — plugin built, E2E battery PASS
+
+Executed all 5 phases: vault bootstrap ×2; teamkb_server.py (zero-dep, 14 tools, 31/31 tests);
+plugin agents/skills/hooks (validate clean); Copilot .agent.md (spec fetched from GitHub docs —
+description required, model free string, mcp-servers inline). Battery vs ~/vault/kb-test:
+iteration 1 exposed embed timeouts on whitepaper batches (fixed: sub-batch 8/90s + resume) and
+θ miscalibration (0.45→0.30 on observed distribution). Final: 13/13 docs × 4 modalities PASS,
+zero false absents, GA mean 0.99, back-pass + DCF episodes + battery episode captured.
+Evidence committed docs/test-battery/run-2026-08-12/. System operational for team ingestion.
+
 ## 2026-08-12 (later) — docs scrub, plugin pivot, battery plan approved
 
 Scrubbed all machine/network refs from docs for new-team handoff (commit 564a8ff). Then planning

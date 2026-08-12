@@ -33,5 +33,8 @@
   clients fall back to legacy initialize — zero-dep legacy server stays interoperable if it returns
   clean JSON-RPC errors for unknown methods.
 
+- **Hosted embed endpoint quirks (2026-08-12)**: Cloudflare 403s urllib's default User-Agent
+  (set any custom UA); large /api/embed batches time out on the MoE model — sub-batch ≤8 texts,
+  90s timeout. θ_semantic lives in db meta per vault (kb-test calibrated to 0.30).
 - Old project's continuity archived at obsidian-vault-config `docs/proto-implementation/continuity/`;
   its compliance ontology is dead, its layered-fence/gate-server patterns remain referenceable.
