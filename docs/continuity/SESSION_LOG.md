@@ -11,3 +11,11 @@ adagio bring-up: build 0 errors, tests 18/18 after 3 real fixes (Windows sqlite 
 anchor, FTS5 hyphen quoting) + MCP logging→stderr. OPEN: MCP stdio handshake returns zero responses
 to clean JSON-RPC (see VERIFY.md OPEN ISSUE + CURRENT_TASK_STATE resume steps). largo hit ENOSPC
 twice mid-session (boot vol ~200-500MB free) — all builds stay on adagio.
+
+## 2026-08-12 — remote, whitepapers, Obsidian plane, M0 closed
+
+Remote added + pushed (github:/zautke/team-kb) — team-kb is now the primary working dir;
+obsidian-vault-config retired. Prior session also: 6 whitepapers (docs/whitepapers/, ~4.3k lines),
+Obsidian integration (R7 research, typed-properties serializer, kb/* tag plane, kb.base dashboards),
+and M0.1 resolved — "silent MCP server" was a harness stdin-EOF race, all 6 tools verified.
+M0 done. Next: M1 (embeddings, RRF, verdict contract, plan_turn router). Also open: SQLitePCLRaw bump.

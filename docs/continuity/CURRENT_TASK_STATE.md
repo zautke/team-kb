@@ -1,6 +1,8 @@
 # CURRENT TASK STATE — team-kb
 
-**As of:** 2026-08-11 · **Repo:** /Volumes/MACDEV/team-kb (local only, no remote) · **Phase:** M0 nearly done
+**As of:** 2026-08-12 · **Repo:** /Volumes/MACDEV/team-kb (origin: github:/zautke/team-kb) · **Phase:** M0 complete, M1 next
+
+**This is now the primary working dir.** obsidian-vault-config is retired (banner in its README).
 
 ## State
 

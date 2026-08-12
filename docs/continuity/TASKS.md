@@ -13,9 +13,9 @@
 
 - [x] M0.1 MCP handshake — RESOLVED 2026-08-11: harness stdin-EOF race, not a server bug; all 6 tools verified (VERIFY.md)
 - [ ] Bump SQLitePCLRaw.bundle_e_sqlite3 (NU1903 GHSA-2m69-gcr7-jv3q)
-- [ ] Decide GitHub remote + push
+- [x] GitHub remote added + pushed (github:/zautke/team-kb, 2026-08-12)
 - [ ] M1 kickoff (see PLANS)
-- [ ] Sync fixes back: adagio copy is scp-patched — re-tar from largo (COPYFILE_DISABLE=1) or git-clone once remote exists
+- [ ] Re-sync adagio: replace scp-patched copy with git clone from origin
 
 ## Blocked-until
 
