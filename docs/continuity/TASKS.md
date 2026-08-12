@@ -17,6 +17,15 @@
 - [ ] M1 kickoff (see PLANS)
 - [ ] Re-sync build host: replace scp-patched copy with git clone from origin
 
+## Open (2026-08-12 — plugin pivot, approved plan)
+
+- [ ] Phase 1: vault bootstrap (repo vault/ + ~/vault/kb-test, parameterized)
+- [ ] Phase 2: plugin/ — teamkb_server.py (12 tools, 8 gates byte-parity §F) + unittest + agents + skills + hooks + commands
+- [ ] Phase 3: .github Copilot agents/skills (verify .agent.md fields from official docs first)
+- [ ] Phase 4: E2E battery ≥5 docs (Appendix A/B), iterate until deterministic gate green
+- [ ] Phase 5: evidence → docs/test-battery/run-<date>/ + VERIFY.md + commits
+- Deferred (M1+): ANN, RRF, md→Note parser/full rebuild, submission GC, Copilot full battery, 4-value verdict, decay/MemRL, C4 auto-stub, tag-registry migrations
+
 ## Blocked-until
 
 (nothing — M0 fully verified, M1 unblocked)

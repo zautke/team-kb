@@ -17,5 +17,21 @@
   explicit Version; dotnet CLI chatter goes to stderr; MCP stdio servers must route ALL logging to
   stderr (`LogToStandardErrorThreshold = Trace`).
 - **xunit.v3** (3.2.2) not xunit 2.x; test csproj needs `<OutputType>Exe</OutputType>`.
+## 2026-08-12
+
+- **C# stack punted in place** — never delete src/; it is the byte-parity reference for the Python
+  server. Conformance map §F (in plan file + reviewer transcripts) holds the exact strings.
+- **`5.6-luna-xtrahigh` = OpenAI `gpt-5.6-luna` + `xhigh` reasoning effort** (Copilot/Codex convention).
+  NOT valid in Claude Code agent frontmatter (silent fallback on unknown model) — hence dual-target.
+- **nomic-embed-text-v2 requires task prefixes** (`search_document:` / `search_query:`) or retrieval
+  quality measurably degrades.
+- **Claude Code plugin facts (verified 2026-08-12)**: components at plugin ROOT (not inside
+  .claude-plugin/); commands merged into skills; plugin MCP tools named
+  `mcp__plugin_<plugin>_<server>__<tool>`; agent `model:` accepts sonnet|opus|haiku|fable|inherit or
+  claude-* IDs only, `effort:` separate field; plugin agents ignore hooks/mcpServers/permissionMode.
+- **MCP spec 2026-07-28**: modern era has no initialize handshake (`server/discover`); dual-era
+  clients fall back to legacy initialize — zero-dep legacy server stays interoperable if it returns
+  clean JSON-RPC errors for unknown methods.
+
 - Old project's continuity archived at obsidian-vault-config `docs/proto-implementation/continuity/`;
   its compliance ontology is dead, its layered-fence/gate-server patterns remain referenceable.

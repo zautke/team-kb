@@ -14,6 +14,15 @@ inference legal there, NOT on the authoring Mac); poach neo4j-graphrag; aggressi
 14 verbs / 12 obs kinds — `_meta/ontology.md`); P1 "Stratified Memory Organism" folder=tier layout;
 net10.0 (build host compiles; dotnet 10.0.302).
 
+## Pivot 2026-08-12 — C# stack punted in place; lightweight plugin path
+
+C# MAF stack (src/) frozen untouched (no local dotnet; ssh-iteration too slow). Live path: dual-target
+plugin (Claude Code `plugin/` + Copilot `.github/agents|skills`) with zero-dep Python stdio MCP server
+porting the 8 gates byte-for-byte, PLUS chunk/embed/semantic/tag-search/reindex tools (12 total).
+Embeddings via hosted Ollama (`nomic-embed-text-v2-moe`), env-swappable to ONNX in target env.
+Approved plan: `~/.claude/plans/i-need-to-set-deep-lobster.md` (base + runbook Appendix A + gap
+addendum Appendix B from 3-reviewer distillation). E2E battery vault: `~/vault/kb-test`.
+
 ## Phases
 
 - [x] M0 Core: constitution, gates-as-code, staged propose/commit, FTS5, episodes, MCP server, gate suite (18/18 on the build host) — **except MCP handshake open issue**

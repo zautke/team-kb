@@ -1,27 +1,24 @@
 # CURRENT TASK STATE — team-kb
 
-**As of:** 2026-08-12 · **Repo:** <repo-root> (origin: github:/zautke/team-kb) · **Phase:** M0 complete, M1 next
-
-**This is now the primary working dir.** obsidian-vault-config is retired (banner in its README).
+**As of:** 2026-08-12 · **Repo:** <repo-root> (origin: github:/zautke/team-kb) · **Phase:** plugin build (approved plan)
 
 ## State
 
-- Constitution v1.0.0 (`_meta/`), research dossier R1-R6 (`docs/research/` + kb `_governance/research/rebuild-2026-08/`), M0 source complete.
-- Retargeted **net10.0** (C# 14; Microsoft.Data.Sqlite + Hosting 10.0.10, ModelContextProtocol 2.1.0, xunit.v3 3.2.2). Research: `docs/research/` + plan.
-- **Build+test on the build host** (`ssh <build-host>`, Windows, dotnet 10.0.302, C:\Users\me\dev\team-kb): build 0 errors, **tests 18/18 pass**.
-- the authoring Mac is unusable for builds: no SDK, boot disk ~200-500MB free (ENOSPC events mid-session).
+- C# M0 stack **punted in place** (`src/`, 18/18 tests on build host, untouched). Live path = dual-target plugin.
+- Approved plan: `~/.claude/plans/i-need-to-set-deep-lobster.md` — base plan + Appendix A (E2E battery runbook, GA/CA per-doc) + Appendix B (gap addendum: 12-tool server, embeddings, deterministic scoring).
+- Docs scrubbed of machine refs (564a8ff). Vault `vault/` still to bootstrap; test vault `~/vault/kb-test` exists (bare `.obsidian`).
 
 ## Resume point
 
-**M0.1 RESOLVED** — "silent server" was a test-harness stdin-EOF race, zero code changes.
-Holding stdin open shows correct initialize + tools/list (all 6 tools). M0 fully verified.
-Next: M1 kickoff (embeddings, RRF, verdict contract, plan_turn router) per PLANS.
+Implementation Phase 1 not yet started. Order:
+1. Vault bootstrap (parameterized on TEAMKB_VAULT; run for repo `vault/` AND `~/vault/kb-test`; tier tree, tags registry seed, kb.base, merged .obsidian)
+2. `plugin/` build: zero-dep Python MCP server (6 byte-parity tools ported from conformance-map §F exact strings + 6 new: submit_document, ingest_chunks, semantic_search, suggest_tags, search_by_tag, reindex, add_relations), unittest suite (ported GateTests), agents (kb-agent, kb-curator), skills (kb-prime, dispatch, 6 curate-*, kb-battery), hooks (PreCompact→episode), commands
+3. Copilot side: `.github/agents/*.agent.md` (gpt-5.6-luna + xhigh — verify field names from Copilot docs first), skills copy
+4. E2E battery per Appendix A/B on ≥5 docs from docs/research + docs/whitepapers → evidence to `docs/test-battery/run-<date>/` + VERIFY.md
+5. Continuity + commit per phase
 
-## Sync ritual (the authoring Mac ↔ the build host)
+## Key constraints
 
-Edit locally → `scp <files> <build-host>:C:/Users/me/dev/team-kb/src/...` → `ssh <build-host> 'cd C:\Users\me\dev\team-kb\src; dotnet test TeamKb.sln'`.
-Beware: (a) macOS tar AppleDouble `._*` files break the build — use `COPYFILE_DISABLE=1 tar` or purge; (b) PowerShell here-strings: `\"` stays literal — ship JSON via file, never inline.
-
-## Then
-
-M1 per plan (`docs/plan-2026-08-11-teardown-rebuild.md`): embeddings (LM Studio/ONNX on target), RRF hybrid, verdict contract everywhere, plan_turn router. Also: bump SQLitePCLRaw (NU1903), decide GitHub remote.
+- Embeddings: hosted `https://ollama2.braisenly.com` `/api/embed`, `nomic-embed-text-v2-moe:latest`, task prefixes `search_document:`/`search_query:` mandatory; NO local model weights on this Mac; `TEAMKB_EMBED_URL`/`TEAMKB_EMBED_MODEL` env-swappable.
+- Agents: GA never gets propose/commit; CA never gets fs-write. Write path = gates only.
+- Battery pass gate deterministic (recall@5, verdict correctness, expected-absent probe); LLM 0-1 scores commentary.

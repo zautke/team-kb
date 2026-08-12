@@ -14,3 +14,16 @@
   building clean prove nothing about the protocol path.
 - **Research agents: harvest reports from transcripts via SendMessage extraction** — idle
   notifications don't carry payloads; grep the session jsonl for the final SendMessage.
+
+## 2026-08-12
+
+- **Never assume config-file shapes — research first.** Agent frontmatter `model:` guess
+  (`5.6-luna-xtrahigh`) was wrong syntax for the harness; official-docs research resolved it to a
+  different vendor's model+effort convention and forced a dual-target design. Verify agents.md /
+  SKILL.md / plugin.json / MCP-spec shapes against official docs dated today before writing any file.
+- **3-disparate-reviewer distillation works**: retrieval, orchestration, and integrity lenses each
+  found gaps the others missed (task prefixes; wildcard tool-grant violation; DCF wrong-tier + I4
+  trap). Distill to one addendum; record unanimous findings (no-RRF-at-MVP) as strong signals.
+- **Runbooks must be reviewed against the tool surface they assume** — Appendix A silently required
+  6 tools the base plan never shipped; all three reviewers caught it as the headline. Diff
+  runbook-verbs vs tools/list before approving any runbook.
