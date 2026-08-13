@@ -55,7 +55,8 @@ server is the only write path; hand edits bypass every gate.
 ## 5. The manual
 
 `docs/agent-manual/` is the operational layer under this digest — worked examples
-with real outputs. Route by task: `01-quickstart`, `02-populate-the-kb`,
+with real outputs. Route by task: `00-zero-to-running` (stand up a new KB from
+nothing), `01-quickstart`, `02-populate-the-kb`,
 `03-gates-playbook` (what to do about a REJECTED), `04-retrieval-playbook`
 (which modality, and when to stop), `05-tool-reference`, `06-troubleshooting`.
 

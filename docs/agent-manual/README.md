@@ -9,6 +9,7 @@ invented examples.
 
 | I want to… | Read |
 |------------|------|
+| **Stand up a new KB from nothing** | [00-zero-to-running.md](00-zero-to-running.md) |
 | Get oriented in 5 minutes and run my first query | [01-quickstart.md](01-quickstart.md) |
 | Put documents into the KB (the main job) | [02-populate-the-kb.md](02-populate-the-kb.md) |
 | Understand a `REJECTED` response and fix it | [03-gates-playbook.md](03-gates-playbook.md) |

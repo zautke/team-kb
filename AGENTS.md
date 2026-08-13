@@ -20,7 +20,9 @@ do not build here.
 
 ## Start here
 
-- **New to this KB? Read `docs/agent-manual/`** — the operational how-to:
+- **Standing up a new KB from zero?** `docs/agent-manual/00-zero-to-running.md`
+  is the master setup runbook — bootstrap, wire, seed, first ingestion, proof.
+- **New to an existing KB? Read `docs/agent-manual/`** — the operational how-to:
   quickstart, populating the KB, gate rejections, retrieval, tool reference,
   troubleshooting, and MCP server configuration. Every example in it is verified
   against the live system.

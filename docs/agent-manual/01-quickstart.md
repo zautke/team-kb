@@ -1,6 +1,9 @@
 # 01 — Quickstart
 
 Five minutes from cold start to your first correct query and first note.
+**If the KB does not exist yet**, start at
+[00-zero-to-running.md](00-zero-to-running.md) instead — this page assumes a
+vault that is already bootstrapped and holding notes.
 
 ## 0. Know which vault you are pointed at
 
