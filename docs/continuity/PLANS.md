@@ -18,7 +18,7 @@ net10.0 (build host compiles; dotnet 10.0.302).
 
 C# MAF stack (src/) frozen untouched (no local dotnet; ssh-iteration too slow). Live path: dual-target
 plugin (Claude Code `plugin/` + Copilot `.github/agents|skills`) with zero-dep Python stdio MCP server
-porting the 8 gates byte-for-byte, PLUS chunk/embed/semantic/tag-search/reindex tools (12 total).
+porting the 8 gates byte-for-byte, PLUS chunk/embed/semantic/tag-search/reindex/log_event tools (15 total).
 Embeddings via hosted Ollama (`nomic-embed-text-v2-moe`), env-swappable to ONNX in target env.
 Approved plan: `~/.claude/plans/i-need-to-set-deep-lobster.md` (base + runbook Appendix A + gap
 addendum Appendix B from 3-reviewer distillation). E2E battery vault: `~/vault/kb-test`.
@@ -33,7 +33,7 @@ unblocked but deliberately deferred until the corpus is larger than 13 documents
 ## Phases
 
 - [x] M0 Core: constitution, gates-as-code, staged propose/commit, FTS5, episodes, MCP server, gate suite (18/18 on the build host) — **except MCP handshake open issue**
-- [ ] M0.1 Fix MCP stdio handshake (see CURRENT_TASK_STATE)
+- [x] M0.1 MCP stdio handshake — resolved 2026-08-11 (harness stdin-EOF race, not a server bug); moot since the Python server became the live path
 - [ ] M1 Retrieval: embeddings (IEmbeddingGenerator → LM Studio), sqlite-vec, RRF fusion, PPR tiebreak, verdict contract, plan_turn router; bump SQLitePCLRaw
 - [ ] M2 Graph: Neo4j mirror (neo4j-graphrag patterns), link analytics, hubs
 - [ ] M3 Self-learning: consolidation daemon, decay+utility, contradiction operators, retrieval-miss replay

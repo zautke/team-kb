@@ -36,6 +36,7 @@
 - **Hosted embed endpoint quirks (2026-08-12)**: Cloudflare 403s urllib's default User-Agent
   (set any custom UA); large /api/embed batches time out on the MoE model — sub-batch ≤8 texts,
   90s timeout. θ_semantic lives in db meta per vault (kb-test calibrated to 0.30).
+
 ## 2026-08-13 (later)
 
 - **Semantic coverage does not survive a clone.** Document vectors derive from source corpus
