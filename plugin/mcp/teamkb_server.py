@@ -188,6 +188,116 @@ def to_markdown(n: dict) -> str:
     return "\n".join(L) + "\n"
 
 
+# ── Parser: markdown → note (exact inverse of to_markdown) ──────────────────
+# Markdown is canonical per the constitution; the SQLite index is derived. A
+# derived artifact that cannot be re-derived is a defect, so the vault must be
+# rebuildable from its own files alone (clone → reindex → working retrieval).
+
+_REL_LINE = re.compile(r"^- ([A-Z_]+) :: \[\[(.+?)\]\] \{(.*)\}$")
+_OBS_LINE = re.compile(r"^- \[([a-z]+)\] (.*?)(?: \(provenance: (.+)\))?$")
+
+
+def _unquote(v: str) -> str:
+    v = v.strip()
+    return v[1:-1] if len(v) >= 2 and v[0] == v[-1] == '"' else v
+
+
+def parse_markdown(text: str) -> dict:
+    """Inverse of to_markdown. Raises ValueError on anything it cannot round-trip."""
+    if not text.startswith("---\n"):
+        raise ValueError("missing frontmatter")
+    fm_end = text.index("\n---\n", 3)
+    fm, body = text[4:fm_end + 1], text[fm_end + 5:]
+
+    n = {"tags": [], "aliases": [], "provenance": [], "relations": [],
+         "observations": [], "overview": "", "isolated_justification": None,
+         "status": "active", "confidence": 1.0}
+    section = None
+    for line in fm.splitlines():
+        if not line.strip():
+            continue
+        if line.startswith(("  - ", "    ")):          # list / nested item
+            if section == "tags":
+                n["tags"].append(line.strip()[2:])
+            elif section == "provenance":
+                k, _, v = line.strip().lstrip("- ").partition(": ")
+                if k == "source":
+                    n["provenance"].append({"source": _unquote(v)})
+                elif n["provenance"]:
+                    cur = n["provenance"][-1]
+                    if k == "captured_at":
+                        cur["captured_at"] = datetime.fromisoformat(
+                            _unquote(v).replace("Z", "+00:00"))
+                    elif k == "confidence":
+                        cur["confidence"] = float(v)
+                    else:
+                        cur[k] = _unquote(v)
+            continue
+        key, _, val = line.partition(":")
+        key, val = key.strip(), val.strip()
+        if key in ("tags", "provenance") and not val:
+            section = key
+            continue
+        section = None
+        if key == "title":
+            n["title"] = _unquote(val)
+        elif key == "entity_class":
+            n["class"] = val
+        elif key == "permalink":
+            n["permalink"] = val
+        elif key in ("created", "modified"):
+            n[key] = datetime.fromisoformat(val).replace(tzinfo=timezone.utc)
+        elif key == "status":
+            n["status"] = val
+        elif key == "confidence":
+            n["confidence"] = float(val)
+        elif key == "isolated_justification":
+            n["isolated_justification"] = _unquote(val)
+        elif key == "aliases":
+            n["aliases"] = [_unquote(a) for a in val.strip("[]").split(", ") if a]
+
+    for required in ("title", "class", "permalink", "created", "modified"):
+        if required not in n:
+            raise ValueError(f"frontmatter missing '{required}'")
+    # the kb/* plane is server-computed on serialize — never store it as a tag
+    n["tags"] = [t for t in n["tags"] if not t.startswith("kb/")]
+
+    part = None
+    overview = []
+    for line in body.splitlines():
+        if line.startswith("## "):
+            part = line[3:].strip().lower()
+            continue
+        if part == "overview":
+            overview.append(line)
+        elif part == "relations" and line.startswith("- "):
+            m = _REL_LINE.match(line)
+            if not m:
+                raise ValueError(f"unparseable relation line: {line}")
+            verb_snake, target, props = m.groups()
+            rel = {"verb": VERB_FROM_SNAKE[verb_snake], "target": target,
+                   "mode": None, "confidence": None}
+            for prop in props.split(", "):
+                k, _, v = prop.partition(": ")
+                if k == "since":
+                    rel["since"] = v
+                elif k == "mode":
+                    rel["mode"] = v
+                elif k == "confidence":
+                    rel["confidence"] = float(v)
+            n["relations"].append(rel)
+        elif part == "observations" and line.startswith("- ["):
+            m = _OBS_LINE.match(line)
+            if not m:
+                raise ValueError(f"unparseable observation line: {line}")
+            kind, obs_text, prov = m.groups()
+            n["observations"].append({
+                "kind": kind.capitalize() if kind != "isa" else kind,
+                "text": obs_text, "provenance_ref": prov})
+    n["overview"] = "\n".join(overview).strip()
+    return n
+
+
 # ── Validator (port of NoteValidator.cs — exact gate messages) ───────────────
 
 def trigrams(s: str):
@@ -833,6 +943,9 @@ def t_log_event(store, a):
 
 
 def t_reindex(store, a):
+    rebuilt = None
+    if a.get("rebuild"):
+        rebuilt = rebuild_index(store)
     missing = []
     for permalink, path in store.db.execute("SELECT permalink, path FROM notes").fetchall():
         if not (store.root / path).exists():
@@ -850,7 +963,43 @@ def t_reindex(store, a):
         "missing_files": missing,
         "embed_pending": [r[0] for r in pending],
     }
+    if rebuilt is not None:
+        counts["rebuilt"] = rebuilt
     return json.dumps(counts)
+
+
+def rebuild_index(store):
+    """Re-derive notes/edges/tags/FTS from the vault's markdown alone.
+
+    Chunk and document embeddings are derived from the *source* corpus, not from
+    vault notes, so they are left untouched — a rebuilt clone keeps whatever
+    vectors it shipped with and re-embeds only what it ingests anew.
+    """
+    t0 = time.perf_counter()
+    parsed, failures = [], []
+    for path in sorted(store.root.rglob("*.md")):
+        rel = path.relative_to(store.root).as_posix()
+        if rel.startswith("_meta/") or not in_scope(path.name):
+            continue
+        try:
+            n = parse_markdown(path.read_text())
+        except (ValueError, KeyError) as e:
+            failures.append({"path": rel, "error": f"{type(e).__name__}: {e}"})
+            continue
+        parsed.append((n, rel))
+
+    for table in ("notes", "edges", "note_tags"):
+        store.db.execute(f"DELETE FROM {table}")
+    store.db.execute("DELETE FROM notes_fts")
+    for n, rel in parsed:
+        store.index_note(n, rel)
+    store.db.commit()
+    report = {"files_parsed": len(parsed), "parse_failures": failures,
+              "duration_ms": round((time.perf_counter() - t0) * 1000, 2)}
+    emit("index.rebuild", phase="CA-9.reindex", ok=not failures,
+         duration_ms=report["duration_ms"], files_parsed=len(parsed),
+         n_failures=len(failures))
+    return report
 
 
 # ── Tool registry + JSON-RPC loop ────────────────────────────────────────────
@@ -969,8 +1118,11 @@ TOOLS = {
     "reindex": {
         "fn": t_reindex,
         "description": ("Index consistency report: note-file existence check, counts (notes/edges/"
-                        "chunks/embeddings/tags), pending embeddings, vault path."),
-        "schema": S()},
+                        "chunks/embeddings/tags), pending embeddings, vault path. With "
+                        "rebuild=true, re-derives notes, edges, tags and FTS from the vault's "
+                        "markdown alone — use after cloning a vault or if the index is lost "
+                        "(markdown is canonical; embeddings are preserved)."),
+        "schema": S(rebuild={"type": "boolean", "_opt": True})},
 }
 
 

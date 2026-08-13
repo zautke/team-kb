@@ -203,6 +203,99 @@ class SerializerParity(unittest.TestCase):
                          srv.normalize_title("Agent Specialist- Color Theory"))
 
 
+class ParserRoundTrip(unittest.TestCase):
+    def rich_note(self):
+        n = srv.make_note(
+            "Team Alpha", "Org", "An org.\n\nWith two paragraphs.",
+            [{"verb": "PartOf", "target": "knowledge/org/parent", "since": "2026-08-11",
+              "mode": "implements", "confidence": 0.8},
+             {"verb": "Mentions", "target": "knowledge/concept/x", "since": "2026-08-12",
+              "mode": None, "confidence": None}],
+            [{"kind": "Fact", "text": "exists", "provenance_ref": "url:https://x"},
+             {"kind": "Hypothesis", "text": "maybe grows", "provenance_ref": None}],
+            [{"source": "session:test", "author": "user",
+              "captured_at": datetime(2026, 8, 11, 14, 30, tzinfo=timezone.utc),
+              "confidence": 1.0}],
+            confidence=0.65, tags=["domain/rag"], aliases=["alpha", "team-a"])
+        n["created"] = n["modified"] = datetime(2026, 8, 11, 14, 30, tzinfo=timezone.utc)
+        return n
+
+    def test_markdown_round_trips_byte_for_byte(self):
+        md = srv.to_markdown(self.rich_note())
+        self.assertEqual(md, srv.to_markdown(srv.parse_markdown(md)))
+
+    def test_parsed_fields_match_original(self):
+        n = self.rich_note()
+        back = srv.parse_markdown(srv.to_markdown(n))
+        for field in ("title", "class", "permalink", "status", "confidence",
+                      "overview", "aliases", "tags"):
+            self.assertEqual(n[field], back[field], field)
+        self.assertEqual(2, len(back["relations"]))
+        self.assertEqual("PartOf", back["relations"][0]["verb"])
+        self.assertEqual(0.8, back["relations"][0]["confidence"])
+        self.assertIsNone(back["relations"][1]["mode"])
+        self.assertEqual("Hypothesis", back["observations"][1]["kind"])
+        self.assertEqual("url:https://x", back["observations"][0]["provenance_ref"])
+        self.assertEqual("session:test", back["provenance"][0]["source"])
+        self.assertEqual(n["created"], back["created"])
+
+    def test_isolated_justification_and_episode_round_trip(self):
+        n = srv.make_note("Session retro", "Event", "It went fine.", [], [],
+                          [{"source": "session:test", "author": "agent:test",
+                            "captured_at": datetime(2026, 8, 11, 9, 0, tzinfo=timezone.utc),
+                            "confidence": 1.0}],
+                          isolated_justification="episodic capture; linked at consolidation")
+        md = srv.to_markdown(n)
+        self.assertEqual(md, srv.to_markdown(srv.parse_markdown(md)))
+        self.assertEqual("episodic capture; linked at consolidation",
+                         srv.parse_markdown(md)["isolated_justification"])
+
+    def test_parser_rejects_garbage(self):
+        with self.assertRaises(ValueError):
+            srv.parse_markdown("no frontmatter here")
+
+
+class RebuildTests(StoreCase):
+    def test_index_rebuilds_from_markdown_alone(self):
+        self.store.register_tag("domain/rag")
+        target = self.commit_valid("Retrieval Target")
+        pid, v = self.store.propose(valid(
+            "Rebuild Source", isolated_justification=None, tags=["domain/rag"],
+            observations=[{"kind": "Fact", "text": "distinctive bitemporal marker",
+                           "provenance_ref": None}],
+            relations=[{"verb": "Mentions", "target": target, "since": "2026-08-12",
+                        "mode": None, "confidence": None}]))
+        self.assertIsNotNone(pid, v)
+        src = self.store.commit_note(pid)
+
+        # nuke every derived table — markdown files are all that remain
+        for table in ("notes", "edges", "note_tags", "notes_fts"):
+            self.store.db.execute(f"DELETE FROM {table}")
+        self.store.db.commit()
+        self.assertEqual([], self.store.search("bitemporal"))
+
+        report = json.loads(srv.t_reindex(self.store, {"rebuild": True}))
+        self.assertEqual([], report["rebuilt"]["parse_failures"])
+        self.assertEqual(2, report["rebuilt"]["files_parsed"])
+        self.assertEqual(2, report["notes"])
+
+        # every retrieval modality works again off the rebuilt index
+        self.assertTrue(any(p == src for p, _, _ in self.store.search("bitemporal")))
+        self.assertTrue(any(s == src and inv == "MENTIONED_BY"
+                            for s, _, inv in self.store.backlinks(target)))
+        self.assertIn(src, srv.t_search_by_tag(self.store, {"tag": "domain/rag"}))
+        self.assertIn(src, srv.t_search_by_tag(self.store, {"tag": "kb/concept",
+                                                            "prefix": True}))
+
+    def test_rebuild_reports_unparseable_files(self):
+        self.commit_valid("Good Note")
+        (Path(self.dir) / "knowledge/concept/broken.md").write_text("not a note\n")
+        report = json.loads(srv.t_reindex(self.store, {"rebuild": True}))
+        self.assertEqual(1, report["rebuilt"]["files_parsed"])
+        self.assertEqual(1, len(report["rebuilt"]["parse_failures"]))
+        self.assertIn("broken.md", report["rebuilt"]["parse_failures"][0]["path"])
+
+
 FAKE_DIM = 8
 
 
