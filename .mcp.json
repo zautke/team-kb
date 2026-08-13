@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "teamkb": {
+      "type": "stdio",
+      "command": "python3",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/plugin/mcp/teamkb_server.py"
+      ],
+      "env": {
+        "TEAMKB_VAULT": "${TEAMKB_VAULT:-${CLAUDE_PROJECT_DIR:-.}/vault}",
+        "TEAMKB_EMBED_URL": "${TEAMKB_EMBED_URL:-https://ollama2.braisenly.com}",
+        "TEAMKB_EMBED_MODEL": "${TEAMKB_EMBED_MODEL:-nomic-embed-text-v2-moe:latest}"
+      }
+    }
+  }
+}
