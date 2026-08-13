@@ -15,6 +15,21 @@
   Cloudflare User-Agent, run_server.sh vault-override resolution.
 - C# stack still frozen reference in `src/`.
 
+## Telemetry (added 2026-08-13)
+
+Structured event stream `$TEAMKB_VAULT/.teamkb-events.jsonl` (always on) covers every
+pipeline phase per document: tool.start/end w/ durations + extracted metrics, gate.eval
+(all 8 gates each pass), chunk.done, embed.batch/done (incl. retries), submission.failed,
+plus agent-judgment phases via the new `log_event` tool (CA-1 strategy, CA-6 metadata,
+CA-11 report, GA-4 scoring — required by both agent definitions). Correlation keys:
+run_id/seq/phase/doc, with filename→submission→permalink chaining and a scoped
+pipeline-context slot for doc-less tools. `metrics_rollup.py` → per-document records
++ `--aggregate` corpus phase stats (p50/p95, gate tallies, embed retries).
+`collect_evidence.sh` packages a run. Schema: `docs/telemetry-events.md`.
+
+Caught by this layer immediately: fresh vaults seeded semantic θ=0.45 and returned
+absent for a true conceptual match — seed is now the calibrated 0.30.
+
 ## Resume point
 
 System is operational — team can ingest documents now:

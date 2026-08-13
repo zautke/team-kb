@@ -1,5 +1,17 @@
 # SESSION LOG — team-kb (newest first)
 
+## 2026-08-13 — telemetry layer: per-phase events + per-document metrics
+
+Answered "can we capture all runbook output?" — previously no (only opt-in raw tool
+trace: no timings, no doc correlation, no phase labels, metrics buried in result
+strings, nothing for agent-judgment steps). Built the structured event stream
+(gate/chunk/embed/tool/agent events with run_id/seq/phase/doc/duration_ms), the
+`log_event` tool so agents log non-tool phases, the per-document rollup with
+filename→submission→permalink chaining, corpus phase-stat aggregation, and
+one-command evidence packaging. Tests 39/39. The layer immediately caught a real
+defect: fresh vaults seeded θ=0.45 (pre-calibration) so a true conceptual match
+returned absent — seed corrected to the calibrated 0.30.
+
 ## 2026-08-12 (evening) — plugin built, E2E battery PASS
 
 Executed all 5 phases: vault bootstrap ×2; teamkb_server.py (zero-dep, 14 tools, 31/31 tests);

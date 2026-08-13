@@ -24,6 +24,7 @@
 - [x] Phase 3: .github Copilot agents/skills (.agent.md spec verified from docs.github.com)
 - [x] Phase 4: E2E battery — 13 docs, deterministic gate PASS after 2 iterations (embed sub-batching, resume, θ=0.30)
 - [x] Phase 5: evidence docs/test-battery/run-2026-08-12/ + VERIFY.md M0.5 section
+- [x] Telemetry: per-phase event stream, log_event tool, per-document rollup, aggregate stats, evidence packaging (2026-08-13)
 - [ ] First real ingestion into repo vault/ (battery ran vs ~/vault/kb-test)
 - Deferred (M1+): ANN, RRF, md→Note parser/full rebuild, submission GC, Copilot full battery, 4-value verdict, decay/MemRL, C4 auto-stub, tag-registry migrations
 

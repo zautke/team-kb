@@ -27,3 +27,19 @@
 - **Runbooks must be reviewed against the tool surface they assume** — Appendix A silently required
   6 tools the base plan never shipped; all three reviewers caught it as the headline. Diff
   runbook-verbs vs tools/list before approving any runbook.
+
+## 2026-08-13
+
+- **A prose summary is not evidence; a metric stream is.** The 2026-08-12 battery
+  reported PASS, but the calibrated retrieval threshold existed only in that one
+  vault's database — every fresh vault silently mis-scored semantic queries. The
+  defect became visible the moment scores were emitted as structured events rather
+  than narrated. Instrument the pipeline before trusting its self-report.
+- **Correlate telemetry on the identity the work actually flows through.** Ingestion
+  changes identity mid-pipeline (filename → submission id → permalink), so events
+  must be chained across all three or per-document metrics fragment into thirds.
+  Tools with no document argument need an explicit pipeline-context slot, scoped so
+  corpus-level work is never misattributed to the last document.
+- **Tune calibration constants in the seed, not in one instance's state.** A value
+  derived from corpus evidence is a code-level default; leaving it in a single
+  database makes it unreproducible everywhere else.
