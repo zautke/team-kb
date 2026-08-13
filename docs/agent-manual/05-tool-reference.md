@@ -1,6 +1,10 @@
 # 05 — Tool reference
 
-Fifteen tools. In Claude Code they appear as
+Fifteen tools, exposed by one stdio MCP server named `teamkb`. Server wiring,
+JSON config for each host, and the environment variables are in
+[07-mcp-server-config.md](07-mcp-server-config.md).
+
+In Claude Code they appear as
 `mcp__plugin_team-kb_teamkb__<tool>`; in Copilot as `teamkb/<tool>`; from a shell
 as `python3 plugin/scripts/kbcall.py -t <tool> -a '<json>'`.
 

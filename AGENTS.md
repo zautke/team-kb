@@ -22,7 +22,8 @@ do not build here.
 
 - **New to this KB? Read `docs/agent-manual/`** — the operational how-to:
   quickstart, populating the KB, gate rejections, retrieval, tool reference,
-  troubleshooting. Every example in it is verified against the live system.
+  troubleshooting, and MCP server configuration. Every example in it is verified
+  against the live system.
 - Prime a session: `/team-kb:kb-prime` (Claude Code) or read
   `plugin/skills/kb-prime/SKILL.md`.
 - Search/submit: kb-agent. Ingest/curate: kb-curator.

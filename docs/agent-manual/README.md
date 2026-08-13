@@ -15,6 +15,7 @@ invented examples.
 | Find things, and know when to stop looking | [04-retrieval-playbook.md](04-retrieval-playbook.md) |
 | Look up a tool's arguments and return shape | [05-tool-reference.md](05-tool-reference.md) |
 | Fix something that broke | [06-troubleshooting.md](06-troubleshooting.md) |
+| Wire the MCP server into a host, or change its vault/endpoint | [07-mcp-server-config.md](07-mcp-server-config.md) |
 
 Related material outside this folder: `AGENTS.md` (repo rules),
 `plugin/skills/` (per-step curation discipline), `docs/telemetry-events.md`
