@@ -1,0 +1,33 @@
+  CA-1.strategy                      docs= 13 p50=      0.0ms p95=      0.0ms fails=0
+  CA-10.dcf|episode                  docs= 13 p50=      1.2ms p95=      1.9ms fails=0
+  CA-11.report                       docs= 13 p50=      0.0ms p95=      0.0ms fails=0
+  CA-2.chunk                         docs= 13 p50=      0.4ms p95=      1.1ms fails=0
+  CA-2/3.chunk_embed                 docs= 13 p50=  33156.1ms p95=  91155.7ms fails=0
+  CA-3.embed                         docs= 13 p50=  33153.3ms p95=  91147.6ms fails=0
+  CA-4.neighbors                     docs= 13 p50=      0.7ms p95=      1.2ms fails=0
+  CA-5.tag_similarity                docs= 13 p50=  10941.5ms p95=  12428.0ms fails=0
+  CA-6.metadata                      docs= 13 p50=      0.0ms p95=      0.0ms fails=0
+  CA-7.commit                        docs= 16 p50=      2.4ms p95=      3.5ms fails=0
+  CA-7.link                          docs= 13 p50=      0.2ms p95=      0.3ms fails=0
+  CA-7.propose                       docs= 16 p50=      0.9ms p95=      1.4ms fails=0
+  CA-8.verify|GA-3.retrieve.graph    docs= 14 p50=      0.7ms p95=      1.9ms fails=0
+  GA-1.submit                        docs= 13 p50=      1.8ms p95=      3.2ms fails=0
+  embed batches=72 retries=0 p95=17963.3ms
+
+events=669  documents=16  committed=16  failed=0
+  committed knowledge/artifact/c-maf-agents-as-mcp-tools-stack-research        phases=12 gates_failed=0   42627.0ms
+  committed knowledge/artifact/c-maf-mcp-architecture-whitepaper               phases=12 gates_failed=0  169406.6ms
+  committed knowledge/artifact/code-cartography-whitepaper                     phases=12 gates_failed=0  131351.4ms
+  committed knowledge/artifact/curation-tactics-whitepaper                     phases=12 gates_failed=0  187928.4ms
+  committed knowledge/artifact/jcodemunch-functional-spec-recon                phases=12 gates_failed=0   36660.8ms
+  committed knowledge/artifact/master-kb-empirical-failure-audit               phases=12 gates_failed=0   42824.2ms
+  committed knowledge/artifact/master-kb-formal-post-mortem-model              phases=12 gates_failed=0   77098.8ms
+  committed knowledge/artifact/obsidian-integration-research                   phases=12 gates_failed=0   37841.9ms
+  committed knowledge/artifact/self-learning-loops-whitepaper                  phases=12 gates_failed=0  192902.3ms
+  committed knowledge/artifact/survey-of-agentic-self-learning-loops           phases=12 gates_failed=0   46213.8ms
+  committed knowledge/artifact/survey-of-self-evolving-knowledge-graph-syste   phases=12 gates_failed=0   69874.3ms
+  committed knowledge/artifact/the-formal-theory-of-the-team-kb-knowledge-gr   phases=12 gates_failed=0  236282.3ms
+  committed knowledge/artifact/the-stratified-memory-organism-whitepaper       phases=12 gates_failed=0  166772.1ms
+  committed knowledge/concept/gates-as-code                                    phases= 2 gates_failed=0       1.6ms
+  committed knowledge/concept/stratified-memory-organism                       phases= 2 gates_failed=0       0.9ms
+  committed knowledge/concept/verdict-honesty-contract                         phases= 2 gates_failed=0       0.7ms

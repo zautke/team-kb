@@ -45,7 +45,8 @@ mkdir -p "$OUT"
 cp "$VAULT/.teamkb-events.jsonl" "$OUT/events.jsonl"
 [[ -f "$VAULT/.teamkb-trace.jsonl" ]] && cp "$VAULT/.teamkb-trace.jsonl" "$OUT/trace.jsonl"
 
-ROLLUP_ARGS=(-e "$OUT/events.jsonl" -o "$OUT/metrics.jsonl" --summary)
+ROLLUP_ARGS=(-e "$OUT/events.jsonl" -o "$OUT/metrics.jsonl" --summary
+             --aggregate "$OUT/phase-stats.json")
 [[ -n "$RUN_ID" ]] && ROLLUP_ARGS+=(-r "$RUN_ID")
 python3 "$REPO/plugin/scripts/metrics_rollup.py" "${ROLLUP_ARGS[@]}" \
   2> "$OUT/metrics-summary.txt" || true

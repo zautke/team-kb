@@ -96,3 +96,32 @@ tools/call search_notes on empty vault → `verdict: absent`; `server/discover` 
 - Back-pass verified: add_relations wrote markdown + edge; inverse backlink computed.
 - Sample rendered note: 07-sample-note.md (full frontmatter, kb/* tag plane,
   wikilink relations, typed observations).
+
+---
+
+# M0.6 Verification — instrumented pipeline (2026-08-13)
+
+Telemetry layer added: every pipeline phase emits structured events; the battery's
+own numbers are now derived from that stream rather than narrated.
+Evidence: `docs/test-battery/run-2026-08-13/` (scorecard, events, per-document
+metrics, corpus phase stats, trace).
+
+```bash
+cd plugin/mcp && python3 -m unittest test_teamkb_server   # Ran 39 tests ... OK
+```
+
+Single clean run, fresh vault, no reruns:
+
+- 13 documents + 3 anchors, **12 instrumented phases per document**, 669 events
+- 0 gate failures across 32 validator passes; 0 embed retries across 72 batches
+- Deterministic gate **PASS** (13/13 docs × 4 modalities, 0 false absents)
+- GA modality battery **10/10** (was 9/10 before the θ fix below)
+- Index: 29 notes, 22 edges, 291 chunks, 13 doc embeddings, 0 missing files
+- Phase latency (p50/p95): embedding 33.2 s / 91.1 s dominates; every gate,
+  chunk, commit, link and report phase is sub-millisecond
+
+**Defect found by the telemetry itself**: a fresh vault seeded semantic θ at the
+pre-calibration 0.45, so a true conceptual match returned `absent` (SEM-1 scored
+0.0). The 0.30 calibration had only ever been written into the first vault's meta
+table. Seed corrected; SEM-1 now passes. Prior runs' PASS verdicts were correct on
+their own gate but concealed this, because scores existed only as prose.

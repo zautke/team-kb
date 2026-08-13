@@ -1,0 +1,123 @@
+{
+  "documents": 16,
+  "committed": 16,
+  "failed": 0,
+  "phases": {
+    "CA-1.strategy": {
+      "docs": 13,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0,
+      "max_ms": 0.0,
+      "total_ms": 0.0,
+      "failures": 0
+    },
+    "CA-10.dcf|episode": {
+      "docs": 13,
+      "p50_ms": 1.2,
+      "p95_ms": 1.9,
+      "max_ms": 2.4,
+      "total_ms": 17.6,
+      "failures": 0
+    },
+    "CA-11.report": {
+      "docs": 13,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0,
+      "max_ms": 0.0,
+      "total_ms": 0.0,
+      "failures": 0
+    },
+    "CA-2.chunk": {
+      "docs": 13,
+      "p50_ms": 0.4,
+      "p95_ms": 1.1,
+      "max_ms": 1.4,
+      "total_ms": 7.7,
+      "failures": 0
+    },
+    "CA-2/3.chunk_embed": {
+      "docs": 13,
+      "p50_ms": 33156.1,
+      "p95_ms": 91155.7,
+      "max_ms": 112671.3,
+      "total_ms": 636450.1,
+      "failures": 0
+    },
+    "CA-3.embed": {
+      "docs": 13,
+      "p50_ms": 33153.3,
+      "p95_ms": 91147.6,
+      "max_ms": 112660.4,
+      "total_ms": 636369.7,
+      "failures": 0
+    },
+    "CA-4.neighbors": {
+      "docs": 13,
+      "p50_ms": 0.7,
+      "p95_ms": 1.2,
+      "max_ms": 1.2,
+      "total_ms": 9.5,
+      "failures": 0
+    },
+    "CA-5.tag_similarity": {
+      "docs": 13,
+      "p50_ms": 10941.5,
+      "p95_ms": 12428.0,
+      "max_ms": 33848.2,
+      "total_ms": 164838.0,
+      "failures": 0
+    },
+    "CA-6.metadata": {
+      "docs": 13,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0,
+      "max_ms": 0.0,
+      "total_ms": 0.0,
+      "failures": 0
+    },
+    "CA-7.commit": {
+      "docs": 16,
+      "p50_ms": 2.4,
+      "p95_ms": 3.5,
+      "max_ms": 5.0,
+      "total_ms": 38.1,
+      "failures": 0
+    },
+    "CA-7.link": {
+      "docs": 13,
+      "p50_ms": 0.2,
+      "p95_ms": 0.3,
+      "max_ms": 0.3,
+      "total_ms": 3.2,
+      "failures": 0
+    },
+    "CA-7.propose": {
+      "docs": 16,
+      "p50_ms": 0.9,
+      "p95_ms": 1.4,
+      "max_ms": 1.6,
+      "total_ms": 13.3,
+      "failures": 0
+    },
+    "CA-8.verify|GA-3.retrieve.graph": {
+      "docs": 14,
+      "p50_ms": 0.7,
+      "p95_ms": 1.9,
+      "max_ms": 2.2,
+      "total_ms": 14.0,
+      "failures": 0
+    },
+    "GA-1.submit": {
+      "docs": 13,
+      "p50_ms": 1.8,
+      "p95_ms": 3.2,
+      "max_ms": 3.9,
+      "total_ms": 25.9,
+      "failures": 0
+    }
+  },
+  "gate_failures": {},
+  "embed_batches": 72,
+  "embed_retries": 0,
+  "embed_p95_ms": 17963.3
+}
