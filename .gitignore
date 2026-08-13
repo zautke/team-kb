@@ -2,6 +2,8 @@ bin/
 obj/
 *.user
 .teamkb.db*
+.teamkb-events.jsonl
+.teamkb-trace.jsonl
 .DS_Store
 .env
 vault/.obsidian/workspace.json
