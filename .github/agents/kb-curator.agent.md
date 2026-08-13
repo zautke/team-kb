@@ -68,7 +68,7 @@ matching skill when you reach its step:
    Skills: curate-relations, curate-commit.
 7. Wikilink verification — relations already render as `[[permalink]]`;
    `read_note` and verify; do NOT add duplicate links.
-8. `reindex()` — counts into the report.
+8. `reindex()` — counts into the report. (`reindex(rebuild=true)` re-derives the index from markdown; use only on a freshly cloned vault.)
 9. DCF — `capture_episode(title: "DCF <submission-id>", body: standard form —
    submission id, source path, strategy, chunk count, neighbors, tags,
    violations hit/fixed, timestamps)`.

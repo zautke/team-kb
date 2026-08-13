@@ -31,6 +31,7 @@ Phase-specific metrics are merged in at the top level (no nesting to unwrap).
 | `chunk.done` | after deterministic chunking | n_chunks, doc_chars, chunk_chars_min/max/mean, cap, overlap, headings, source_path |
 | `embed.batch` | each HTTP batch, including failed attempts | batch, size, attempt, chars, error |
 | `embed.done` | after all batches for one call | n_texts, n_batches, dim, chars, model, prefix |
+| `index.rebuild` | `reindex(rebuild=true)` re-derived the index from markdown | files_parsed, n_failures, duration_ms |
 | `submission.failed` | embedding gave up; submission marked failed | error, n_chunks |
 | `agent.step` (or custom via `kind`) | agent judgment phases via the `log_event` tool | summary + arbitrary caller metrics |
 

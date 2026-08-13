@@ -27,6 +27,19 @@ do not build here.
   skill `plugin/skills/kb-battery/SKILL.md`.
 - Server tests: `cd plugin/mcp && python3 -m unittest test_teamkb_server`.
 
+## Cloning a vault
+
+The SQLite index (`<vault>/.teamkb.db`) is derived and gitignored; markdown is
+canonical. After cloning a vault, rebuild retrieval from the files:
+
+```bash
+TEAMKB_VAULT=<vault> python3 plugin/scripts/kbcall.py -t reindex -a '{"rebuild":true}'
+```
+
+This re-derives notes, edges, tags and FTS. Document embeddings derive from the
+source corpus rather than from vault notes, so semantic search covers whatever
+was ingested in that vault; re-ingest a document to (re-)embed it.
+
 ## Telemetry (always on)
 
 Every tool call, gate evaluation, chunk/embed batch, and agent-judgment phase is

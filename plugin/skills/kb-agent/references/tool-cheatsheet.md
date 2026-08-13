@@ -18,7 +18,7 @@ Tool names in Claude Code: `mcp__plugin_team-kb_teamkb__<tool>`.
 | register_tag | {tag, description?} | `REGISTERED` / `REJECTED` (namespace, kb/*, near-dup) |
 | capture_episode | title, body, provenanceSource, provenanceAuthor | `CAPTURED episodes/…` (append-only; same title same day rejected) |
 | log_event | {phase, doc?, summary?, kind?, ok?, metrics?} | `LOGGED <phase>` — records agent-judgment phases into the run event log |
-| reindex | {} | JSON counts + missing_files + embed_pending + vault path |
+| reindex | {rebuild?} | JSON counts + missing_files + embed_pending + vault path; rebuild=true re-derives notes/edges/tags/FTS from markdown (use after cloning a vault) |
 
 Patterns:
 - relations item: `{"verb":"Mentions","target":"knowledge/concept/x","since":"2026-08-12"}`

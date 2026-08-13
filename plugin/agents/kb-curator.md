@@ -60,7 +60,7 @@ Each step's discipline lives in a skill; invoke each when you reach its step:
 7. **CA-8 Wikilink verification** — relations already render as `[[permalink]]` in the
    committed markdown; `read_note` the result and verify targets resolve. Do NOT add
    duplicate links.
-8. **CA-9 Reindex** — `reindex()`, include counts in report.
+8. **CA-9 Reindex** — `reindex()`, include counts in report. (`reindex(rebuild=true)` re-derives the whole index from markdown — for a freshly cloned vault, not for routine curation.)
 9. **CA-10 DCF** — capture the standard Document Creation Form as an EPISODE
    (`capture_episode`): title `DCF <submission_id>`, body = submission id, source path,
    strategy, chunk count, neighbors found, tags applied, gate violations hit/fixed,
