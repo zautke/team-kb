@@ -423,7 +423,11 @@ class Store:
         for t in ("status/anchor", "status/verified", "status/draft",
                   "source/session", "source/web", "source/paper", "source/code"):
             self.db.execute("INSERT OR IGNORE INTO tags(tag) VALUES(?)", (t,))
-        self.db.execute("INSERT OR IGNORE INTO meta VALUES('semantic_theta','0.45')")
+        # Calibrated 2026-08-12 against the research+whitepaper corpus: true
+        # matches floor at ~0.30, true absents ceiling at ~0.17. Seeding 0.45
+        # (the pre-calibration guess) made fresh vaults miss real neighbours.
+        # Per-vault override: UPDATE meta SET value=... WHERE key='semantic_theta'.
+        self.db.execute("INSERT OR IGNORE INTO meta VALUES('semantic_theta','0.30')")
         self.db.execute("INSERT OR IGNORE INTO meta VALUES(?,?)",
                         ("embed_model", f"{EMBED_MODEL}"))
         self.db.commit()

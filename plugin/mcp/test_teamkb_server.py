@@ -305,6 +305,10 @@ class BatterySurface(StoreCase):
             {"verb": "Mentions", "target": "knowledge/concept/ghost", "since": "2026-08-12"}]})
         self.assertIn("[C4]", bad)
 
+    def test_semantic_theta_seeded_at_calibrated_value(self):
+        # a fresh vault must start at the calibrated floor, not the original guess
+        self.assertEqual("0.30", self.store.meta_get("semantic_theta"))
+
     def test_reindex_report(self):
         self.commit_valid("Indexed Note")
         rep = json.loads(srv.t_reindex(self.store, {}))
