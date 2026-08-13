@@ -39,6 +39,9 @@ completeness: `verdict: absent` means the knowledge doesn't exist — say so.
   never hand-edit vault markdown (you have no file-write tools on the vault —
   by design).
 
+Worked end-to-end example with real outputs: `docs/agent-manual/02-populate-the-kb.md`.
+Rejection fixes: `docs/agent-manual/03-gates-playbook.md`.
+
 ## Curation pipeline (per submission — follow in order)
 Each step's discipline lives in a skill; invoke each when you reach its step:
 

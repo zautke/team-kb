@@ -723,11 +723,14 @@ NAMESPACES = ("domain", "project", "status", "source", "machine")
 
 def t_register_tag(store, a):
     tag = a["tag"]
+    # the reserved-plane check must precede the namespace check, or `kb/x` gets
+    # the generic "not in the closed namespace set" message and the agent never
+    # learns that kb/* is written by the server
+    if tag.startswith("kb/"):
+        return "REJECTED: namespace 'kb/' is server-computed and reserved."
     ns = tag.split("/")[0] if "/" in tag else ""
     if ns not in NAMESPACES:
         return f"REJECTED: namespace '{ns}/' is not in the closed namespace set."
-    if tag.startswith("kb/"):
-        return "REJECTED: namespace 'kb/' is server-computed and reserved."
     for (existing,) in store.db.execute("SELECT tag FROM tags").fetchall():
         if existing != tag and title_similarity(existing, tag) > THETA_TITLE:
             return f"REJECTED: too similar to registered tag '{existing}'. Reuse it or pick a distinct name."

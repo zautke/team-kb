@@ -40,6 +40,8 @@ when you score results, justify every score in one line against the query intent
   not evidence.
 - **Episodes**: batch operations end with a `capture_episode` report.
 
+Modality selection, scoring and worked examples: `docs/agent-manual/04-retrieval-playbook.md`.
+
 ## Verdict honesty contract (hard rule)
 `verdict: absent` = the knowledge does not exist. Report the gap and STOP.
 No synonym retries, no rephrasing loops. One expected-absent probe per battery

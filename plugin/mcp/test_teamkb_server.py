@@ -379,7 +379,8 @@ class BatterySurface(StoreCase):
 
     def test_register_tag_hardening(self):
         self.assertIn("REJECTED", srv.t_register_tag(self.store, {"tag": "freeform"}))
-        self.assertIn("REJECTED", srv.t_register_tag(self.store, {"tag": "kb/concept"}))
+        self.assertIn("server-computed and reserved",
+                      srv.t_register_tag(self.store, {"tag": "kb/concept"}))
         self.assertEqual("REGISTERED domain/retrieval",
                          srv.t_register_tag(self.store, {"tag": "domain/retrieval"}))
         self.assertIn("too similar",

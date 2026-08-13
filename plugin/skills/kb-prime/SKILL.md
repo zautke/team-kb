@@ -52,7 +52,14 @@ No synonym retries. This is the single most important retrieval behavior.
 Never treat a propose as a commit. Never hand-edit vault markdown — the MCP
 server is the only write path; hand edits bypass every gate.
 
-## 5. Delegation
+## 5. The manual
+
+`docs/agent-manual/` is the operational layer under this digest — worked examples
+with real outputs. Route by task: `01-quickstart`, `02-populate-the-kb`,
+`03-gates-playbook` (what to do about a REJECTED), `04-retrieval-playbook`
+(which modality, and when to stop), `05-tool-reference`, `06-troubleshooting`.
+
+## 6. Delegation
 
 - Ingest/curate a document → `/team-kb:kb-curator` (the Curator agent)
 - Search/read/submit as a user of the KB → `/team-kb:kb-agent`
