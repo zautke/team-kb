@@ -23,6 +23,13 @@ Embeddings via hosted Ollama (`nomic-embed-text-v2-moe`), env-swappable to ONNX 
 Approved plan: `~/.claude/plans/i-need-to-set-deep-lobster.md` (base + runbook Appendix A + gap
 addendum Appendix B from 3-reviewer distillation). E2E battery vault: `~/vault/kb-test`.
 
+## Status 2026-08-13
+
+M0.6 done: server (15 tools, 8 gates, 45/45 tests), populated repo vault, telemetry,
+re-derivable index, 8-doc agent manual, project-scope MCP registration. The KB is
+operational and documented for a consuming team. M1 (RRF fusion, richer verdicts) is
+unblocked but deliberately deferred until the corpus is larger than 13 documents.
+
 ## Phases
 
 - [x] M0 Core: constitution, gates-as-code, staged propose/commit, FTS5, episodes, MCP server, gate suite (18/18 on the build host) — **except MCP handshake open issue**

@@ -25,7 +25,13 @@
 - [x] Phase 4: E2E battery — 13 docs, deterministic gate PASS after 2 iterations (embed sub-batching, resume, θ=0.30)
 - [x] Phase 5: evidence docs/test-battery/run-2026-08-12/ + VERIFY.md M0.5 section
 - [x] Telemetry: per-phase event stream, log_event tool, per-document rollup, aggregate stats, evidence packaging (2026-08-13)
-- [ ] First real ingestion into repo vault/ (battery ran vs ~/vault/kb-test)
+- [x] First real ingestion into repo vault/ — 13 docs + 3 anchors, zero gate failures (81db1c6)
+- [x] md→Note parser + reindex(rebuild=true); verified on markdown-only clone (6a021dd)
+- [x] docs/agent-manual/ — 8 operational how-to docs, all examples live-verified (7c24e2d, 5fbb989, 111803d)
+- [x] Register teamkb MCP server at project scope, portable paths (895eba8)
+- [ ] Restart a session to exercise native mcp__teamkb__* tools (registered but not loaded in-session)
+- [ ] DECIDE: semantic channel on clone — commit embeddings, or re-embed from note text on rebuild
+- [ ] Repoint TEAMKB_EMBED_URL default before handing to the other team (currently a personal tunnel)
 - Deferred (M1+): ANN, RRF, md→Note parser/full rebuild, submission GC, Copilot full battery, 4-value verdict, decay/MemRL, C4 auto-stub, tag-registry migrations
 
 ## Blocked-until

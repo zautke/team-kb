@@ -1,5 +1,25 @@
 # SESSION LOG — team-kb (newest first)
 
+## 2026-08-13 (later) — vault populated, manual written, server registered
+
+Closed the portability gap first: the constitution called markdown canonical but nothing
+could re-derive the index, so a cloned vault answered `absent` to everything. Added
+`parse_markdown` (exact serializer inverse) + `reindex(rebuild=true)` (6a021dd); proven on a
+markdown-only copy — 29 notes, 22 edges, 6.5ms, identical BM25 scores to the original.
+
+Populated repo `vault/` (81db1c6): 13 documents + 3 anchors, 16 commits, zero gate failures,
+zero embed retries; all four modalities verified in place. Telemetry artifacts moved to
+gitignore — run evidence belongs in docs/test-battery/, not the vault.
+
+Wrote `docs/agent-manual/` (7c24e2d, 5fbb989, 111803d): eight documents from zero-to-running
+through troubleshooting and MCP config. Every command executed live before being written, which
+caught a real defect — the `kb/*` reserved-namespace message was unreachable behind the generic
+namespace check, so agents got the less useful error.
+
+Registered the server at project scope (895eba8) with portable `${CLAUDE_PROJECT_DIR:-.}` paths;
+`claude mcp list` → Connected. Approval had to be recorded manually: the trust dialog only fires
+at session start, so the user's stated approval was not captured by the mechanism.
+
 ## 2026-08-13 — telemetry layer: per-phase events + per-document metrics
 
 Answered "can we capture all runbook output?" — previously no (only opt-in raw tool

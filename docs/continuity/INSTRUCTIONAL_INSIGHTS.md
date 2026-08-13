@@ -43,3 +43,20 @@
 - **Tune calibration constants in the seed, not in one instance's state.** A value
   derived from corpus evidence is a code-level default; leaving it in a single
   database makes it unreproducible everywhere else.
+
+## 2026-08-13 (later)
+
+- **Write documentation by executing it, not by recalling it.** Every command in the agent manual
+  was run live before being written down. That practice caught a real defect (an unreachable error
+  message) and corrected two claims that would otherwise have shipped wrong. Documentation written
+  from memory is a second, unverified implementation of the system.
+- **A derived artifact that cannot be re-derived is a defect, not a shortcut.** The constitution
+  declared markdown canonical, but with no parser the index was effectively primary — a clone had
+  notes and no retrieval. Whenever a design names a source of truth, verify the dependent artifact
+  can actually be rebuilt from it.
+- **Distinguish "configured" from "active" before reporting success.** The server showed
+  `✔ Connected` while exposing no tools to the running session. Check the capability the user
+  actually wants (are the tools callable?), not the status line that looks like it.
+- **Approval mechanisms can silently fail to capture consent.** The user approved; the trust dialog
+  never fired, so nothing was recorded. Verify the state the mechanism was supposed to write rather
+  than assuming the interaction landed.

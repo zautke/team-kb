@@ -36,5 +36,18 @@
 - **Hosted embed endpoint quirks (2026-08-12)**: Cloudflare 403s urllib's default User-Agent
   (set any custom UA); large /api/embed batches time out on the MoE model — sub-batch ≤8 texts,
   90s timeout. θ_semantic lives in db meta per vault (kb-test calibrated to 0.30).
+## 2026-08-13 (later)
+
+- **Semantic coverage does not survive a clone.** Document vectors derive from source corpus
+  files, not from vault notes, so `reindex(rebuild=true)` restores FTS/tags/graph but leaves the
+  semantic channel empty. Undecided fix — commit embeddings, or re-embed from note text.
+- **Project-scope MCP servers need a session-start trust dialog.** Registering mid-session leaves
+  `hasTrustDialogAccepted: false` and no `mcp__<server>__*` tools; the config is only picked up by
+  a session that starts after the file exists.
+- **`claude mcp add` writes absolute paths** — rewrite to `${CLAUDE_PROJECT_DIR:-.}` before
+  committing, or the config is machine-specific.
+- **TEAMKB_EMBED_URL still defaults to a personal tunnel** — the one value that must change before
+  another team uses this.
+
 - Old project's continuity archived at obsidian-vault-config `docs/proto-implementation/continuity/`;
   its compliance ontology is dead, its layered-fence/gate-server patterns remain referenceable.
