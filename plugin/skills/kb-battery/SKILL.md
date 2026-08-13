@@ -42,11 +42,13 @@ Full-corpus wrap-up:
    (semantic waivers allowed on tiny corpus — document them); zero false
    absents; expected-absent probe correct. LLM scores are commentary
    (mean ≥ 0.7 secondary).
-8. Evidence: copy from the vault → `docs/test-battery/run-<date>/`:
+8. Evidence — one command packages everything:
+   `plugin/scripts/collect_evidence.sh -v <vault> [-r <run-id>]`, which collects
+   into `docs/test-battery/run-<date>/`:
    - `.teamkb-events.jsonl` — structured per-phase events/metrics (always on;
      set `TEAMKB_RUN_ID` before the run so the run is filterable)
    - `.teamkb-trace.jsonl` — raw tool req/resp (TEAMKB_TRACE=1)
-   - `metrics.jsonl` — per-document rollup:
-     `python3 plugin/scripts/metrics_rollup.py -e <events> -o metrics.jsonl --summary`
-   - scorecard.md + vault tree snapshot
+   - `metrics.jsonl` + `metrics-summary.txt` — per-document rollup
+   - `vault-tree.txt`, `sample-note.md`, `index-counts.json`
+   Write `scorecard.md` alongside them (GA scores + deterministic gate result).
 9. `capture_episode` the battery run summary.

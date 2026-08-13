@@ -144,12 +144,51 @@ def rollup(events):
     return out
 
 
+def pct(values, p):
+    if not values:
+        return 0.0
+    s = sorted(values)
+    i = min(int(round((p / 100) * (len(s) - 1))), len(s) - 1)
+    return round(s[i], 1)
+
+
+def aggregate(rows, events):
+    """Corpus-level view: per-phase latency distribution and outcome counts."""
+    per_phase = defaultdict(list)
+    fails = defaultdict(int)
+    for r in rows:
+        for phase, v in r["phases"].items():
+            per_phase[phase].append(v["ms"])
+            if not v["ok"]:
+                fails[phase] += 1
+    gate_fail = defaultdict(int)
+    for e in events:
+        for g in e.get("gates_failed") or []:
+            gate_fail[g] += 1
+    embed = [e for e in events if e.get("kind") == "embed.batch"]
+    return {
+        "documents": len(rows),
+        "committed": sum(1 for r in rows if r["status"] == "committed"),
+        "failed": sum(1 for r in rows if r["status"] == "failed"),
+        "phases": {p: {"docs": len(v), "p50_ms": pct(v, 50), "p95_ms": pct(v, 95),
+                       "max_ms": round(max(v), 1), "total_ms": round(sum(v), 1),
+                       "failures": fails.get(p, 0)}
+                   for p, v in sorted(per_phase.items())},
+        "gate_failures": dict(gate_fail),
+        "embed_batches": len(embed),
+        "embed_retries": sum(1 for e in embed if not e.get("ok", True)),
+        "embed_p95_ms": pct([e.get("duration_ms", 0) for e in embed if e.get("ok", True)], 95),
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("-e", "--events", required=True)
     ap.add_argument("-o", "--output", default=None)
     ap.add_argument("-r", "--run-id", default=None)
     ap.add_argument("-s", "--summary", action="store_true")
+    ap.add_argument("-a", "--aggregate", default=None,
+                    help="write corpus-level phase stats to this JSON file")
     ns = ap.parse_args()
 
     events = load(ns.events, ns.run_id)
@@ -160,6 +199,18 @@ def main():
         print(f"wrote {len(rows)} document records → {ns.output}")
     else:
         sys.stdout.write(text)
+
+    if ns.aggregate:
+        agg = aggregate(rows, events)
+        Path(ns.aggregate).write_text(json.dumps(agg, indent=2) + "\n")
+        print(f"wrote corpus phase stats → {ns.aggregate}")
+        for phase, s in agg["phases"].items():
+            print(f"  {phase:34s} docs={s['docs']:3d} p50={s['p50_ms']:9.1f}ms "
+                  f"p95={s['p95_ms']:9.1f}ms fails={s['failures']}", file=sys.stderr)
+        if agg["gate_failures"]:
+            print(f"  gate failures: {agg['gate_failures']}", file=sys.stderr)
+        print(f"  embed batches={agg['embed_batches']} retries={agg['embed_retries']} "
+              f"p95={agg['embed_p95_ms']}ms", file=sys.stderr)
 
     if ns.summary:
         committed = [r for r in rows if r["status"] == "committed"]

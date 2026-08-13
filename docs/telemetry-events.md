@@ -74,6 +74,24 @@ record:
 ```
 
 `--summary` prints a per-document status/phase/gate/timing table to stderr.
+`-a/--aggregate <file>` additionally writes corpus-level phase statistics —
+per-phase p50/p95/max/total latency, per-phase failure counts, gate-failure
+tallies, and embed batch/retry counts:
+
+```json
+{"documents": 13, "committed": 13, "failed": 0,
+ "phases": {"CA-3.embed": {"docs": 13, "p50_ms": 31652.8, "p95_ms": 93708.6,
+                           "max_ms": 93708.6, "total_ms": 512340.1, "failures": 0}, …},
+ "gate_failures": {}, "embed_batches": 58, "embed_retries": 0, "embed_p95_ms": 18494.8}
+```
+
+## Packaging a run
+
+```bash
+plugin/scripts/collect_evidence.sh -v ~/vault/kb-test -r <run-id>
+# → docs/test-battery/run-<date>/{events,metrics,trace}.jsonl,
+#   metrics-summary.txt, vault-tree.txt, sample-note.md, index-counts.json
+```
 
 ## Raw trace (optional)
 
