@@ -27,6 +27,23 @@ do not build here.
   skill `plugin/skills/kb-battery/SKILL.md`.
 - Server tests: `cd plugin/mcp && python3 -m unittest test_teamkb_server`.
 
+## Telemetry (always on)
+
+Every tool call, gate evaluation, chunk/embed batch, and agent-judgment phase is
+appended to `$TEAMKB_VAULT/.teamkb-events.jsonl` — one JSON object per event with
+`run_id`, `seq`, `phase` (runbook step), `doc` (submission id or permalink),
+`duration_ms`, `ok`, and phase-specific metrics. Set `TEAMKB_RUN_ID` before a run
+to label it. Agent-side steps that aren't tool calls are logged with the
+`log_event` tool. Roll up per document:
+
+```bash
+python3 plugin/scripts/metrics_rollup.py -e <vault>/.teamkb-events.jsonl \
+    -o metrics.jsonl --summary
+```
+
+`TEAMKB_TRACE=1` additionally writes raw request/response pairs to
+`.teamkb-trace.jsonl`.
+
 ## Layout
 
 - `vault/` — the knowledge vault (Obsidian). Tier tree per `_meta/memory-model.md`.

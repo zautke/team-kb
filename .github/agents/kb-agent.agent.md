@@ -14,6 +14,7 @@ tools:
   - "teamkb/read_note"
   - "teamkb/reindex"
   - "teamkb/capture_episode"
+  - "teamkb/log_event"
 mcp-servers:
   teamkb:
     command: bash
@@ -44,6 +45,9 @@ every result score (0-1) gets a one-line justification against the query intent.
   2. Semantic — `semantic_search` (cosine, θ-thresholded honest verdict)
   3. Tag — `search_by_tag` (exact or prefix, e.g. `kb/concept`)
   4. Graph — `read_note` backlinks (inverse verbs are server-computed)
+- **Scoring**: record every 0-1 alignment score with `log_event(phase: "GA-4.score",
+  doc: <permalink>, metrics: {modality, query, score, expected, justification})` —
+  scores that only exist in prose are not evidence.
 - **Episodes**: batch operations end with a `capture_episode` report.
 
 ## Verdict honesty contract (hard rule)

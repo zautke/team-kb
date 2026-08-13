@@ -5,6 +5,7 @@ Embedding-dependent paths use a fake embedder (no network in unit tests).
 """
 import json
 import shutil
+import sys
 import tempfile
 import unittest
 from datetime import datetime, timezone
@@ -205,7 +206,7 @@ class SerializerParity(unittest.TestCase):
 FAKE_DIM = 8
 
 
-def fake_embed(texts, prefix):
+def fake_embed(texts, prefix, doc=None, phase=None):
     """Deterministic pseudo-embeddings: hash-derived, normalized. Prefix shifts nothing
     (parity between doc and query spaces for testing)."""
     out = []
@@ -310,6 +311,143 @@ class BatterySurface(StoreCase):
         self.assertEqual(1, rep["notes"])
         self.assertEqual([], rep["missing_files"])
         self.assertIn(str(self.store.root), rep["vault"])
+
+
+class EventLogTests(StoreCase):
+    def setUp(self):
+        super().setUp()
+        self.events = Path(self.dir) / "events.jsonl"
+        srv._events["fp"] = self.events.open("a")
+        srv._events["seq"] = 0
+        srv.RUN_ID = "run-test"
+
+    def tearDown(self):
+        srv._events["fp"].close()
+        srv._events["fp"] = None
+        super().tearDown()
+
+    def lines(self):
+        return [json.loads(l) for l in self.events.read_text().splitlines() if l.strip()]
+
+    def test_gate_events_record_every_gate(self):
+        self.store.propose(valid(provenance=[]))
+        ev = [e for e in self.lines() if e["kind"] == "gate.eval"][0]
+        self.assertEqual(srv.ALL_GATES, ev["gates_evaluated"])
+        self.assertIn("PROV", ev["gates_failed"])
+        self.assertIn("C2", ev["gates_passed"])
+        self.assertFalse(ev["ok"])
+        self.assertEqual(1, ev["n_violations"])
+        self.assertEqual("run-test", ev["run_id"])
+        self.assertIsNotNone(ev["duration_ms"])
+
+    def test_tool_call_emits_start_end_with_metrics(self):
+        srv.handle(self.store, {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                                "params": {"name": "search_notes",
+                                           "arguments": {"query": "nothing here"}}}, None)
+        kinds = [e["kind"] for e in self.lines()]
+        self.assertIn("tool.start", kinds)
+        end = [e for e in self.lines() if e["kind"] == "tool.end"][0]
+        self.assertEqual("GA-3.retrieve.fts", end["phase"])
+        self.assertEqual("absent", end["verdict"])
+        self.assertEqual(0, end["n_hits"])
+        self.assertGreaterEqual(end["duration_ms"], 0)
+
+    def test_chunk_and_embed_events(self):
+        corpus = Path(self.dir) / "src.md"
+        corpus.write_text("# H\n\n" + "y" * 3000)
+        with mock.patch.object(srv, "embed_texts", side_effect=fake_embed):
+            sid = json.loads(srv.t_submit_document(self.store, {"path": str(corpus)}))["submission_id"]
+            srv.t_ingest_chunks(self.store, {"submissionId": sid})
+        chunk_ev = [e for e in self.lines() if e["kind"] == "chunk.done"][0]
+        self.assertEqual("CA-2.chunk", chunk_ev["phase"])
+        self.assertEqual(sid, chunk_ev["doc"])
+        self.assertGreaterEqual(chunk_ev["n_chunks"], 2)
+        self.assertEqual(srv.CHUNK_CHARS, chunk_ev["cap"])
+        self.assertIn("headings", chunk_ev)
+
+    def test_embed_batch_events_record_retries(self):
+        calls = {"n": 0}
+
+        def flaky(*a, **k):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise TimeoutError("read timed out")
+            return type("R", (), {"read": lambda s: json.dumps(
+                {"embeddings": [[0.1] * 8]}).encode(),
+                "__enter__": lambda s: s, "__exit__": lambda *x: None})()
+
+        with mock.patch.object(srv.urllib.request, "urlopen", side_effect=flaky):
+            srv.embed_texts(["hello"], srv.DOC_PREFIX, doc="sub-x")
+        batches = [e for e in self.lines() if e["kind"] == "embed.batch"]
+        self.assertEqual(2, len(batches))
+        self.assertFalse(batches[0]["ok"])
+        self.assertIn("TimeoutError", batches[0]["error"])
+        self.assertTrue(batches[1]["ok"])
+        self.assertEqual(2, batches[1]["attempt"])
+        done = [e for e in self.lines() if e["kind"] == "embed.done"][0]
+        self.assertEqual("sub-x", done["doc"])
+        self.assertEqual(1, done["n_texts"])
+
+    def test_pipeline_context_attributes_docless_tools(self):
+        corpus = Path(self.dir) / "ctx.md"
+        corpus.write_text("# C\n\nbody")
+        with mock.patch.object(srv, "embed_texts", side_effect=fake_embed):
+            out = srv.handle(self.store, {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                                          "params": {"name": "submit_document",
+                                                     "arguments": {"path": str(corpus)}}}, None)
+            sid = json.loads(out["result"]["content"][0]["text"])["submission_id"]
+            self.store.register_tag("domain/x", "an x")
+            srv.handle(self.store, {"jsonrpc": "2.0", "id": 2, "method": "tools/call",
+                                    "params": {"name": "suggest_tags",
+                                               "arguments": {"text": "about x"}}}, None)
+        tag_ev = [e for e in self.lines()
+                  if e["kind"] == "tool.end" and e["tool"] == "suggest_tags"][0]
+        self.assertEqual(sid, tag_ev["doc"])          # attributed to the in-flight doc
+        # a retrieval call clears the context so corpus-level work isn't misattributed
+        srv.handle(self.store, {"jsonrpc": "2.0", "id": 3, "method": "tools/call",
+                                "params": {"name": "search_notes",
+                                           "arguments": {"query": "x"}}}, None)
+        with mock.patch.object(srv, "embed_texts", side_effect=fake_embed):
+            srv.handle(self.store, {"jsonrpc": "2.0", "id": 4, "method": "tools/call",
+                                    "params": {"name": "suggest_tags",
+                                               "arguments": {"text": "later"}}}, None)
+        later = [e for e in self.lines()
+                 if e["kind"] == "tool.end" and e["tool"] == "suggest_tags"][-1]
+        self.assertIsNone(later["doc"])
+
+    def test_log_event_tool_captures_agent_steps(self):
+        out = srv.t_log_event(self.store, {
+            "phase": "CA-1.strategy", "doc": "sub-1", "summary": "default strategy",
+            "metrics": {"strategy": "default", "reason": "single-note artifact"}})
+        self.assertIn("LOGGED CA-1.strategy", out)
+        ev = [e for e in self.lines() if e["phase"] == "CA-1.strategy"][0]
+        self.assertEqual("agent.step", ev["kind"])
+        self.assertEqual("default", ev["strategy"])
+        self.assertEqual("sub-1", ev["doc"])
+
+    def test_rollup_groups_by_document(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+        import metrics_rollup
+
+        corpus = Path(self.dir) / "doc.md"
+        corpus.write_text("# T\n\nbody text here")
+        with mock.patch.object(srv, "embed_texts", side_effect=fake_embed):
+            sid = json.loads(srv.t_submit_document(self.store, {"path": str(corpus)}))["submission_id"]
+            srv.t_ingest_chunks(self.store, {"submissionId": sid})
+        srv.t_log_event(self.store, {"phase": "CA-1.strategy", "doc": sid,
+                                     "metrics": {"strategy": "default"}})
+        pid, _ = self.store.propose(valid("Rollup Doc", "Artifact"))
+        permalink = self.store.commit_note(pid)
+        srv.handle(self.store, {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                                "params": {"name": "link_submission",
+                                           "arguments": {"submissionId": sid,
+                                                         "permalink": permalink}}}, None)
+        rows = metrics_rollup.rollup(self.lines())
+        row = [r for r in rows if r["doc"] == permalink][0]
+        self.assertIn(sid, row["submission_ids"])       # submission aliased to permalink
+        self.assertIn("CA-2.chunk", row["phases"])      # pre-commit phase rolled in
+        self.assertIn("CA-1.strategy", row["phases"])   # agent step rolled in
+        self.assertGreater(row["total_ms"], 0)
 
 
 class ProtocolTests(StoreCase):

@@ -7,7 +7,7 @@ description: >
   compact report. Use for every document ingestion.
 model: haiku
 effort: xhigh
-tools: Read, Grep, Glob, mcp__plugin_team-kb_teamkb__ingest_chunks, mcp__plugin_team-kb_teamkb__semantic_search, mcp__plugin_team-kb_teamkb__suggest_tags, mcp__plugin_team-kb_teamkb__search_by_tag, mcp__plugin_team-kb_teamkb__search_notes, mcp__plugin_team-kb_teamkb__read_note, mcp__plugin_team-kb_teamkb__propose_note, mcp__plugin_team-kb_teamkb__commit_note, mcp__plugin_team-kb_teamkb__link_submission, mcp__plugin_team-kb_teamkb__add_relations, mcp__plugin_team-kb_teamkb__register_tag, mcp__plugin_team-kb_teamkb__capture_episode, mcp__plugin_team-kb_teamkb__reindex
+tools: Read, Grep, Glob, mcp__plugin_team-kb_teamkb__ingest_chunks, mcp__plugin_team-kb_teamkb__semantic_search, mcp__plugin_team-kb_teamkb__suggest_tags, mcp__plugin_team-kb_teamkb__search_by_tag, mcp__plugin_team-kb_teamkb__search_notes, mcp__plugin_team-kb_teamkb__read_note, mcp__plugin_team-kb_teamkb__propose_note, mcp__plugin_team-kb_teamkb__commit_note, mcp__plugin_team-kb_teamkb__link_submission, mcp__plugin_team-kb_teamkb__add_relations, mcp__plugin_team-kb_teamkb__register_tag, mcp__plugin_team-kb_teamkb__capture_episode, mcp__plugin_team-kb_teamkb__reindex, mcp__plugin_team-kb_teamkb__log_event
 ---
 
 # kb-curator — the Curator Agent (CA)
@@ -42,7 +42,11 @@ completeness: `verdict: absent` means the knowledge doesn't exist — say so.
 ## Curation pipeline (per submission — follow in order)
 Each step's discipline lives in a skill; invoke each when you reach its step:
 
-1. **CA-1 Strategy** — record `{strategy: "default", reason}` (only `default` exists today).
+1. **CA-1 Strategy** — record `{strategy: "default", reason}` via
+   `log_event(phase: "CA-1.strategy", doc: <submission id>, metrics: {...})`.
+   Every phase that is your judgment rather than a tool call MUST be logged this
+   way — CA-1 strategy, CA-6 metadata rationale, CA-11 report — so the run's
+   event log covers the whole pipeline, not just the tool calls.
 2. **CA-2/CA-3 Chunk + embed** — call `ingest_chunks(submissionId)`. Deterministic,
    server-side. On FAILED (endpoint down): stop this document, report failure, move on.
 3. **CA-4 Neighbors** — `semantic_search(target: submissionId)`. Absent verdict on a
@@ -61,7 +65,8 @@ Each step's discipline lives in a skill; invoke each when you reach its step:
    (`capture_episode`): title `DCF <submission_id>`, body = submission id, source path,
    strategy, chunk count, neighbors found, tags applied, gate violations hit/fixed,
    timestamps.
-10. **CA-11 Report** — your FINAL message is the report. Exactly one fenced JSON block:
+10. **CA-11 Report** — `log_event(phase: "CA-11.report", doc: <permalink>,
+    metrics: <the report object below>)`, then your FINAL message is that report. Exactly one fenced JSON block:
 
 ```json
 {"submission_id": "...", "permalink": "...", "class": "...", "tags": [],

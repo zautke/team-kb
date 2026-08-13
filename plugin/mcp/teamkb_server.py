@@ -27,6 +27,7 @@ import re
 import sqlite3
 import struct
 import sys
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -35,6 +36,32 @@ from pathlib import Path
 log = logging.getLogger("teamkb")
 logging.basicConfig(stream=sys.stderr, level=logging.INFO,
                     format="[teamkb] %(levelname)s %(message)s")
+
+# ── Event log: structured per-phase metrics + events, one JSON object per line.
+# Always on (cheap, append-only); path override via TEAMKB_EVENTS.
+# Correlation keys on every line: run_id, seq, doc (submission id / permalink /
+# source path), phase (runbook step), kind (event type).
+
+RUN_ID = os.environ.get("TEAMKB_RUN_ID", "")
+_events = {"fp": None, "seq": 0}
+
+
+def emit(kind, phase=None, doc=None, duration_ms=None, ok=True, **fields):
+    """Append one event line. Never raises — telemetry must not break the pipe."""
+    fp = _events["fp"]
+    if fp is None:
+        return
+    _events["seq"] += 1
+    rec = {"ts": utcnow().isoformat(), "run_id": RUN_ID, "seq": _events["seq"],
+           "kind": kind, "phase": phase, "doc": doc, "ok": ok}
+    if duration_ms is not None:
+        rec["duration_ms"] = round(duration_ms, 2)
+    rec.update(fields)
+    try:
+        fp.write(json.dumps(rec, default=str) + "\n")
+        fp.flush()
+    except Exception as e:  # pragma: no cover - telemetry is best-effort
+        log.warning("event emit failed: %s", e)
 
 # ── Ontology (port of Ontology.cs; closed sets surface as JSON-Schema enums) ──
 
@@ -178,7 +205,27 @@ def title_similarity(a: str, b: str) -> float:
     return inter / (len(ta) + len(tb) - inter)
 
 
-def validate(store, n: dict):
+ALL_GATES = ["C2", "C3", "C4", "I1", "I4", "PROV", "HYP", "TAG"]
+
+
+def validate(store, n: dict, stage="propose"):
+    t0 = time.perf_counter()
+    v = _validate(store, n)
+    failed = sorted({g for g, _ in v})
+    emit("gate.eval", phase=f"CA-7.{stage}", doc=n.get("permalink"),
+         duration_ms=(time.perf_counter() - t0) * 1000, ok=not v,
+         gates_evaluated=ALL_GATES, gates_failed=failed,
+         gates_passed=[g for g in ALL_GATES if g not in failed],
+         n_violations=len(v),
+         violations=[{"gate": g, "message": m} for g, m in v],
+         n_relations=len(n.get("relations", [])),
+         n_observations=len(n.get("observations", [])),
+         n_tags=len(n.get("tags", [])), entity_class=n.get("class"),
+         confidence=n.get("confidence"))
+    return v
+
+
+def _validate(store, n: dict):
     v = []
     if store.permalink_exists(n["permalink"]):
         v.append(("C2", f"Permalink '{n['permalink']}' already exists. Merge or supersede — never suffix."))
@@ -230,15 +277,23 @@ EMBED_BATCH = 8       # large batches time out on the hosted MoE model
 EMBED_TIMEOUT = 90
 
 
-def embed_texts(texts, prefix):
+def embed_texts(texts, prefix, doc=None, phase="CA-3.embed"):
     """Batch-embed via Ollama /api/embed (sub-batched). L2-normalized vectors."""
     out = []
+    t0 = time.perf_counter()
+    n_batches = (len(texts) + EMBED_BATCH - 1) // EMBED_BATCH
     for i in range(0, len(texts), EMBED_BATCH):
-        out.extend(_embed_batch(texts[i:i + EMBED_BATCH], prefix))
+        out.extend(_embed_batch(texts[i:i + EMBED_BATCH], prefix,
+                                doc=doc, phase=phase, batch=i // EMBED_BATCH))
+    emit("embed.done", phase=phase, doc=doc,
+         duration_ms=(time.perf_counter() - t0) * 1000,
+         n_texts=len(texts), n_batches=n_batches, dim=len(out[0]) if out else 0,
+         model=EMBED_MODEL, prefix=prefix.strip(),
+         chars=sum(len(t) for t in texts))
     return out
 
 
-def _embed_batch(texts, prefix):
+def _embed_batch(texts, prefix, doc=None, phase="CA-3.embed", batch=0):
     body = json.dumps({"model": EMBED_MODEL, "input": [prefix + t for t in texts]}).encode()
     # Cloudflare rejects urllib's default "Python-urllib/x" User-Agent with 403.
     req = urllib.request.Request(f"{EMBED_URL}/api/embed", data=body,
@@ -246,12 +301,22 @@ def _embed_batch(texts, prefix):
                                           "User-Agent": "teamkb-mcp/1.0"})
     last = None
     for attempt in range(3):
+        t0 = time.perf_counter()
         try:
             with urllib.request.urlopen(req, timeout=EMBED_TIMEOUT) as resp:
                 data = json.loads(resp.read())
-            return [l2norm(v) for v in data["embeddings"]]
+            vecs = [l2norm(v) for v in data["embeddings"]]
+            emit("embed.batch", phase=phase, doc=doc,
+                 duration_ms=(time.perf_counter() - t0) * 1000,
+                 batch=batch, size=len(texts), attempt=attempt + 1,
+                 chars=sum(len(t) for t in texts))
+            return vecs
         except (urllib.error.URLError, TimeoutError, KeyError, json.JSONDecodeError) as e:
             last = e
+            emit("embed.batch", phase=phase, doc=doc, ok=False,
+                 duration_ms=(time.perf_counter() - t0) * 1000,
+                 batch=batch, size=len(texts), attempt=attempt + 1,
+                 error=f"{type(e).__name__}: {e}")
             log.warning("embed attempt %d failed: %s", attempt + 1, e)
     raise EmbedError(f"embedding endpoint failed after 3 attempts: {last}")
 
@@ -401,7 +466,7 @@ class Store:
         n["modified"] = datetime.fromisoformat(n["modified"])
         for p in n["provenance"]:
             p["captured_at"] = datetime.fromisoformat(p["captured_at"])
-        violations = validate(self, n)
+        violations = validate(self, n, stage="commit")
         if violations:
             raise ValueError("Commit blocked: " + "; ".join(f"{g}: {m}" for g, m in violations))
         rel = f"{path_for(n['class'])}/{normalize_title(n['title'])}.md"
@@ -587,17 +652,29 @@ def t_ingest_chunks(store, a):
     if row is None:
         return f"REJECTED: no submission '{sid}'."
     text = Path(row[0]).read_text()
+    t0 = time.perf_counter()
     chunks = chunk_markdown(text)
     store.db.execute("DELETE FROM chunks WHERE submission_id=?", (sid,))
     store.db.execute("DELETE FROM chunk_embeddings WHERE submission_id=?", (sid,))
     for c in chunks:
         store.db.execute("INSERT INTO chunks VALUES(?,?,?,?,?)",
                          (sid, c["id"], c["heading_path"], c["text"], json.dumps(c["span"])))
+    sizes = [len(c["text"]) for c in chunks]
+    emit("chunk.done", phase="CA-2.chunk", doc=sid,
+         duration_ms=(time.perf_counter() - t0) * 1000,
+         n_chunks=len(chunks), doc_chars=len(text),
+         chunk_chars_min=min(sizes, default=0), chunk_chars_max=max(sizes, default=0),
+         chunk_chars_mean=round(sum(sizes) / len(sizes), 1) if sizes else 0,
+         cap=CHUNK_CHARS, overlap=OVERLAP_CHARS,
+         headings=sorted({c["heading_path"] for c in chunks})[:20],
+         source_path=row[0])
     try:
-        vecs = embed_texts([c["text"] for c in chunks], DOC_PREFIX)
+        vecs = embed_texts([c["text"] for c in chunks], DOC_PREFIX, doc=sid)
     except EmbedError as e:
         store.db.execute("UPDATE submissions SET status='failed' WHERE id=?", (sid,))
         store.db.commit()
+        emit("submission.failed", phase="CA-3.embed", doc=sid, ok=False,
+             error=str(e), n_chunks=len(chunks))
         return f"FAILED: {e} — submission marked failed; rerun after endpoint recovery."
     for c, v in zip(chunks, vecs):
         store.db.execute("INSERT INTO chunk_embeddings VALUES(?,?,?)", (sid, c["id"], pack(v)))
@@ -625,8 +702,10 @@ def t_link_submission(store, a):
 
 def t_semantic_search(store, a):
     theta = float(store.meta_get("semantic_theta", "0.45"))
+    phase = "CA-4.neighbors" if a.get("target") else "GA-3.retrieve.semantic"
     if a.get("query"):
-        qv = embed_texts([a["query"]], QUERY_PREFIX)[0]
+        qv = embed_texts([a["query"]], QUERY_PREFIX, doc=a.get("target"),
+                         phase=phase + ".embed_query")[0]
     elif a.get("target"):
         row = store.db.execute(
             "SELECT vector FROM doc_embeddings WHERE permalink=? OR submission_id=?",
@@ -664,11 +743,12 @@ def t_suggest_tags(store, a):
     missing = [(t, d) for t, d in rows
                if store.db.execute("SELECT 1 FROM tag_embeddings WHERE tag=?", (t,)).fetchone() is None]
     if missing:
-        vecs = embed_texts([f"{t}: {d or t}" for t, d in missing], DOC_PREFIX)
+        vecs = embed_texts([f"{t}: {d or t}" for t, d in missing], DOC_PREFIX,
+                           phase="CA-5.tag_similarity.embed_registry")
         for (t, _), v in zip(missing, vecs):
             store.db.execute("INSERT OR REPLACE INTO tag_embeddings VALUES(?,?)", (t, pack(v)))
         store.db.commit()
-    qv = embed_texts([a["text"]], QUERY_PREFIX)[0]
+    qv = embed_texts([a["text"]], QUERY_PREFIX, phase="CA-5.tag_similarity.embed_query")[0]
     scored = [(t, dot(qv, unpack(b))) for t, b in
               store.db.execute("SELECT tag, vector FROM tag_embeddings").fetchall()]
     scored.sort(key=lambda x: -x[1])
@@ -732,6 +812,20 @@ def t_add_relations(store, a):
              utcnow().isoformat()))
     store.db.commit()
     return "ADDED {} relation(s) to {}".format(len(a["relations"]), src)
+
+
+def t_log_event(store, a):
+    """Agent-side runbook steps that aren't tool calls (CA-1 strategy, CA-6
+    metadata rationale, CA-11 report, GA scoring) land in the same event log."""
+    metrics = a.get("metrics") or {}
+    if isinstance(metrics, str):
+        try:
+            metrics = json.loads(metrics)
+        except json.JSONDecodeError:
+            metrics = {"note": metrics}
+    emit(a.get("kind", "agent.step"), phase=a["phase"], doc=a.get("doc"),
+         ok=a.get("ok", True), summary=a.get("summary"), **metrics)
+    return f"LOGGED {a['phase']}" + (f" ({a['doc']})" if a.get("doc") else "")
 
 
 def t_reindex(store, a):
@@ -853,6 +947,21 @@ TOOLS = {
         "description": ("Gated (C3/C4) append-only relation addition to an existing note — markdown "
                         "and edge index both updated. Use for the post-corpus relation back-pass."),
         "schema": S(permalink={"type": "string"}, relations=RELATION_SCHEMA)},
+    "log_event": {
+        "fn": t_log_event,
+        "description": ("Record a runbook phase event (metrics + outcome) to the run's "
+                        "event log. Use for steps that are agent judgment rather than tool "
+                        "calls: CA-1 strategy selection, CA-6 metadata rationale, CA-11 "
+                        "report, GA retrieval scoring. phase is the runbook step id."),
+        "schema": S(phase={"type": "string", "description": "Runbook step id, e.g. CA-1.strategy"},
+                    doc={"type": "string", "_opt": True,
+                         "description": "submission id or permalink this step belongs to"},
+                    summary={"type": "string", "_opt": True},
+                    kind={"type": "string", "_opt": True,
+                          "description": "event kind, default agent.step"},
+                    ok={"type": "boolean", "_opt": True},
+                    metrics={"type": "object", "_opt": True,
+                             "description": "arbitrary numeric/string metrics for this phase"})},
     "reindex": {
         "fn": t_reindex,
         "description": ("Index consistency report: note-file existence check, counts (notes/edges/"
@@ -864,6 +973,124 @@ TOOLS = {
 def tool_list():
     return [{"name": name, "description": t["description"], "inputSchema": t["schema"]}
             for name, t in TOOLS.items()]
+
+
+# ── Event correlation + metric extraction ───────────────────────────────────
+
+PHASE_OF_TOOL = {
+    "submit_document": "GA-1.submit",
+    "ingest_chunks": "CA-2/3.chunk_embed",
+    "suggest_tags": "CA-5.tag_similarity",
+    "propose_note": "CA-7.propose",
+    "commit_note": "CA-7.commit",
+    "link_submission": "CA-7.link",
+    "register_tag": "CA-5.register_tag",
+    "read_note": "CA-8.verify|GA-3.retrieve.graph",
+    "reindex": "CA-9.reindex",
+    "capture_episode": "CA-10.dcf|episode",
+    "search_notes": "GA-3.retrieve.fts",
+    "search_by_tag": "GA-3.retrieve.tag",
+    "add_relations": "CA-7.backpass",
+    "log_event": "agent",
+}
+
+
+def phase_for(tool, args):
+    if tool == "semantic_search":
+        return "CA-4.neighbors" if args.get("target") else "GA-3.retrieve.semantic"
+    return PHASE_OF_TOOL.get(tool, "other")
+
+
+# Tools with no document argument that nonetheless belong to the document
+# currently in the pipeline (CA-5 tag similarity, CA-10 DCF capture). The
+# pipeline is strictly sequential per document, so a single context slot is
+# sufficient; retrieval calls clear it so corpus-level work is never
+# misattributed to the last ingested document.
+_ctx = {"doc": None}
+CTX_TOOLS = {"suggest_tags", "capture_episode"}
+CTX_CLEARING_TOOLS = {"search_notes", "search_by_tag", "reindex"}
+
+
+def doc_for(store, tool, args, text):
+    """Correlate every event to one document: submission id, permalink, or path."""
+    if tool in CTX_CLEARING_TOOLS or (tool == "semantic_search" and args.get("query")):
+        _ctx["doc"] = None
+    if tool in CTX_TOOLS:
+        return _ctx["doc"]
+    for key in ("submissionId", "permalink", "target"):
+        if args.get(key):
+            return args[key]
+    if tool == "submit_document" and text.startswith("{"):
+        try:
+            return json.loads(text)["submission_id"]
+        except (json.JSONDecodeError, KeyError):
+            pass
+    if args.get("path"):
+        return Path(args["path"]).name
+    if tool == "commit_note" and text.startswith("COMMITTED "):
+        return text.split()[-1]
+    if tool == "propose_note" and " → " in text:
+        return text.split(" → ")[1].split(".")[0]
+    return None
+
+
+def set_ctx(tool, args, doc):
+    """Remember which document the pipeline is currently working on."""
+    if tool in ("submit_document", "ingest_chunks") and doc:
+        _ctx["doc"] = args.get("submissionId") or doc
+
+
+def metrics_for(tool, text):
+    """Pull structured numbers out of the tool's text return."""
+    m = {}
+    if text.startswith("verdict: "):
+        m["verdict"] = "ok" if text.startswith("verdict: ok") else "absent"
+        lines = [l for l in text.splitlines()[1:] if l.strip()]
+        if tool in ("search_notes", "semantic_search", "search_by_tag"):
+            m["n_hits"] = len(lines) if m["verdict"] == "ok" else 0
+            scores = []
+            for l in lines:
+                try:
+                    scores.append(float(l.split()[0]))
+                except (ValueError, IndexError):
+                    pass
+            if scores:
+                m["top_score"] = scores[0]
+                m["scores"] = scores[:10]
+            m["hits"] = [l.split()[1] for l in lines[:10] if len(l.split()) > 1]
+        if m["verdict"] == "absent" and "top score" in text:
+            try:
+                m["top_score"] = float(text.split("top score ")[1].split(")")[0])
+            except (ValueError, IndexError):
+                pass
+    elif text.startswith("REJECTED"):
+        m["accepted"] = False
+        m["violations"] = [l.split("]")[0].lstrip("[") for l in text.splitlines()
+                           if l.startswith("[")]
+        m["n_violations"] = len(m["violations"])
+    elif text.startswith("STAGED"):
+        m["accepted"] = True
+        m["proposal_id"] = text.split()[1]
+    elif text.startswith(("COMMITTED", "CAPTURED")):
+        m["permalink"] = text.split()[-1]
+    elif text.startswith("{"):
+        try:
+            m.update({k: v for k, v in json.loads(text).items()
+                      if isinstance(v, (int, float, str, list))})
+        except json.JSONDecodeError:
+            pass
+    elif "## Backlinks (computed)" in text:
+        m["n_backlinks"] = sum(1 for l in text.splitlines()
+                               if l.startswith("- ") and "←" in l)
+        m["verdict"] = "ok"
+    elif text.startswith("DUPLICATE"):
+        m["duplicate"] = True
+    elif text.startswith("ADDED"):
+        try:
+            m["n_relations_added"] = int(text.split()[1])
+        except (ValueError, IndexError):
+            pass
+    return m
 
 
 def handle(store, req, trace_fp):
@@ -884,12 +1111,24 @@ def handle(store, req, trace_fp):
         if name not in TOOLS:
             return {"jsonrpc": "2.0", "id": rid,
                     "error": {"code": -32602, "message": f"Unknown tool '{name}'"}}
+        phase = phase_for(name, args)
+        emit("tool.start", phase=phase, doc=doc_for(store, name, args, ""), tool=name,
+             arguments=args)
+        t0 = time.perf_counter()
         try:
             text = TOOLS[name]["fn"](store, args)
             result = {"content": [{"type": "text", "text": text}], "isError": False}
         except Exception as e:  # tool errors surface as isError content, not protocol errors
             log.exception("tool %s failed", name)
-            result = {"content": [{"type": "text", "text": f"ERROR: {e}"}], "isError": True}
+            text = f"ERROR: {e}"
+            result = {"content": [{"type": "text", "text": text}], "isError": True}
+        end_doc = doc_for(store, name, args, text)
+        set_ctx(name, args, end_doc)
+        emit("tool.end", phase=phase, doc=end_doc, tool=name,
+             duration_ms=(time.perf_counter() - t0) * 1000,
+             ok=not result["isError"] and not text.startswith(("REJECTED", "FAILED")),
+             **metrics_for(name, text),
+             **({"error": text} if result["isError"] else {}))
         if trace_fp:
             trace_fp.write(json.dumps({"ts": utcnow().isoformat(), "tool": name,
                                        "arguments": args, "result": result}) + "\n")
@@ -907,7 +1146,18 @@ def main():
         log.error("TEAMKB_VAULT is required (no fallback).")
         sys.exit(1)
     store = Store(vault)
+    global RUN_ID
+    if not RUN_ID:
+        RUN_ID = utcnow().strftime("run-%Y%m%d-%H%M%S")
+    events_path = Path(os.environ.get("TEAMKB_EVENTS")
+                       or store.root / ".teamkb-events.jsonl")
+    events_path.parent.mkdir(parents=True, exist_ok=True)
+    _events["fp"] = events_path.open("a")
     log.info("vault=%s embed=%s/%s", store.root, EMBED_URL, EMBED_MODEL)
+    log.info("events → %s (run_id=%s)", events_path, RUN_ID)
+    emit("run.start", phase="run", vault=str(store.root), embed_url=EMBED_URL,
+         embed_model=EMBED_MODEL, pid=os.getpid(),
+         semantic_theta=store.meta_get("semantic_theta"))
     trace_fp = None
     if os.environ.get("TEAMKB_TRACE") == "1":
         trace_fp = (store.root / ".teamkb-trace.jsonl").open("a")
@@ -924,6 +1174,7 @@ def main():
         if resp is not None:
             sys.stdout.write(json.dumps(resp) + "\n")
             sys.stdout.flush()
+    emit("run.end", phase="run", events=_events["seq"])
     log.info("stdin EOF — exiting")
 
 

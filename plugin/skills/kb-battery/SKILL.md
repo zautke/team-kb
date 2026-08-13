@@ -42,6 +42,11 @@ Full-corpus wrap-up:
    (semantic waivers allowed on tiny corpus — document them); zero false
    absents; expected-absent probe correct. LLM scores are commentary
    (mean ≥ 0.7 secondary).
-8. Evidence: copy `~/vault/kb-test/.teamkb-trace.jsonl` + scorecard.md +
-   vault tree snapshot → `docs/test-battery/run-<date>/`.
+8. Evidence: copy from the vault → `docs/test-battery/run-<date>/`:
+   - `.teamkb-events.jsonl` — structured per-phase events/metrics (always on;
+     set `TEAMKB_RUN_ID` before the run so the run is filterable)
+   - `.teamkb-trace.jsonl` — raw tool req/resp (TEAMKB_TRACE=1)
+   - `metrics.jsonl` — per-document rollup:
+     `python3 plugin/scripts/metrics_rollup.py -e <events> -o metrics.jsonl --summary`
+   - scorecard.md + vault tree snapshot
 9. `capture_episode` the battery run summary.

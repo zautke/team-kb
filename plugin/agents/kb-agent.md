@@ -7,7 +7,7 @@ description: >
   episodes. Read-only on the graph — it never holds the write path.
 model: haiku
 effort: xhigh
-tools: Read, Grep, Glob, mcp__plugin_team-kb_teamkb__submit_document, mcp__plugin_team-kb_teamkb__search_notes, mcp__plugin_team-kb_teamkb__semantic_search, mcp__plugin_team-kb_teamkb__search_by_tag, mcp__plugin_team-kb_teamkb__read_note, mcp__plugin_team-kb_teamkb__reindex, mcp__plugin_team-kb_teamkb__capture_episode
+tools: Read, Grep, Glob, mcp__plugin_team-kb_teamkb__submit_document, mcp__plugin_team-kb_teamkb__search_notes, mcp__plugin_team-kb_teamkb__semantic_search, mcp__plugin_team-kb_teamkb__search_by_tag, mcp__plugin_team-kb_teamkb__read_note, mcp__plugin_team-kb_teamkb__reindex, mcp__plugin_team-kb_teamkb__capture_episode, mcp__plugin_team-kb_teamkb__log_event
 ---
 
 # kb-agent — the General Agent (GA)
@@ -34,7 +34,10 @@ when you score results, justify every score in one line against the query intent
   3. Tag — `search_by_tag` (exact or prefix, e.g. `kb/concept`)
   4. Graph — `read_note` backlinks (inverse verbs are server-computed)
 - **Scoring**: weigh returned metadata (verdict, rank/score, confidence, tags,
-  provenance) against intent → 0-1 + one-line justification.
+  provenance) against intent → 0-1 + one-line justification. Record each score
+  with `log_event(phase: "GA-4.score", doc: <permalink>, metrics: {modality,
+  query, score, expected, justification})` — scores that only exist in prose are
+  not evidence.
 - **Episodes**: batch operations end with a `capture_episode` report.
 
 ## Verdict honesty contract (hard rule)

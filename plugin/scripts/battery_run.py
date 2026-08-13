@@ -252,6 +252,12 @@ def main():
                 logp(f"  resuming {sid}")
             else:
                 sid = json.loads(out)["submission_id"]
+            c.call("log_event", phase="CA-1.strategy", doc=sid,
+                   summary="default ingestion strategy",
+                   metrics={"strategy": "default",
+                            "reason": "single-note artifact curation; whole-doc note "
+                                      "with heading-aware chunk embeddings",
+                            "source_path": d["path"], "target_class": d["cls"]})
             out, err = c.call("ingest_chunks", submissionId=sid)
             logp(f"  chunks: {out[:120]}")
             if out.startswith("FAILED"):
@@ -260,6 +266,12 @@ def main():
             logp("  neighbors: " + out.replace("\n", " | ")[:160])
             out, _ = c.call("suggest_tags", text=d["overview"], limit=4)
             logp("  tag suggestions: " + out.replace("\n", " | ")[:120])
+            c.call("log_event", phase="CA-6.metadata", doc=sid,
+                   summary=f"class={d['cls']} tags={','.join(d['tags'])}",
+                   metrics={"entity_class": d["cls"], "n_tags": len(d["tags"]),
+                            "n_relations": len(d.get("relations", [])),
+                            "n_observations": len(d["observations"]),
+                            "confidence": d.get("confidence", 0.9)})
             args = note_args(d, d["path"])
             out, err = c.call("propose_note", **args)
             logp(f"  propose: {out.splitlines()[0][:140]}")
@@ -281,6 +293,12 @@ def main():
             out, err = c.call("capture_episode", title=f"DCF {sid}", body=dcf_body,
                               provenanceSource=d["path"], provenanceAuthor="agent:curator")
             logp(f"  dcf: {out}")
+            c.call("log_event", phase="CA-11.report", doc=permalink,
+                   summary=f"curated {d['path']}",
+                   metrics={"submission_id": sid, "permalink": permalink,
+                            "class": d["cls"], "tags": d["tags"],
+                            "n_relations": len(d.get("relations", [])),
+                            "dcf": out.split()[-1], "status": "committed"})
 
         out, _ = c.call("reindex")
         logp("== reindex: " + out)
@@ -301,6 +319,17 @@ def main():
         ]
         for label, tool, args in searches:
             out, _ = c.call(tool, **args)
+            modality = label.split("-")[0].split()[0].lower()
+            expected_absent = label.startswith("PROBE")
+            got_absent = "verdict: absent" in out
+            score = 1.0 if (expected_absent == got_absent) else 0.0
+            c.call("log_event", phase="GA-4.score", doc=None, kind="ga.score",
+                   summary=label, ok=score == 1.0,
+                   metrics={"modality": modality, "label": label,
+                            "query": json.dumps(args)[:200],
+                            "expected": "absent" if expected_absent else "ok",
+                            "observed": "absent" if got_absent else "ok",
+                            "score": score})
             if tool == "read_note":
                 bl = [l for l in out.splitlines() if l.startswith("- ") and "←" in l]
                 logp(f"[{label}] backlinks={len(bl)}")

@@ -17,6 +17,7 @@ Tool names in Claude Code: `mcp__plugin_team-kb_teamkb__<tool>`.
 | add_relations | {permalink, relations[]} | `ADDED n relation(s)` or `REJECTED:\n[C3/C4] …` |
 | register_tag | {tag, description?} | `REGISTERED` / `REJECTED` (namespace, kb/*, near-dup) |
 | capture_episode | title, body, provenanceSource, provenanceAuthor | `CAPTURED episodes/…` (append-only; same title same day rejected) |
+| log_event | {phase, doc?, summary?, kind?, ok?, metrics?} | `LOGGED <phase>` — records agent-judgment phases into the run event log |
 | reindex | {} | JSON counts + missing_files + embed_pending + vault path |
 
 Patterns:

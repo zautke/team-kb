@@ -20,6 +20,7 @@ tools:
   - "teamkb/register_tag"
   - "teamkb/capture_episode"
   - "teamkb/reindex"
+  - "teamkb/log_event"
 mcp-servers:
   teamkb:
     command: bash
@@ -51,7 +52,10 @@ on the vault — by design).
 Discipline for each step lives in `plugin/skills/curate-*/SKILL.md` — read the
 matching skill when you reach its step:
 
-1. Strategy — record `{strategy: "default", reason}`.
+1. Strategy — record `{strategy: "default", reason}` via `log_event(phase:
+   "CA-1.strategy", doc: <submission id>, metrics: {...})`. Every judgment phase
+   (CA-1 strategy, CA-6 metadata rationale, CA-11 report) must be logged this way
+   so the event log covers the whole pipeline, not just tool calls.
 2. Chunk + embed — `ingest_chunks(submissionId)`. FAILED (endpoint down) → stop
    this document, report, move on.
 3. Neighbors — `semantic_search(target: submissionId)`; absent on a young vault
@@ -68,6 +72,7 @@ matching skill when you reach its step:
 9. DCF — `capture_episode(title: "DCF <submission-id>", body: standard form —
    submission id, source path, strategy, chunk count, neighbors, tags,
    violations hit/fixed, timestamps)`.
-10. Report — final message contains exactly one fenced JSON block:
+10. Report — `log_event(phase: "CA-11.report", doc: <permalink>, metrics: <report>)`,
+    then the final message contains exactly one fenced JSON block:
     `{"submission_id","permalink","class","tags","relations_added","neighbors",
       "violations_fixed","chunks","confidence","dcf_permalink","status"}`.
