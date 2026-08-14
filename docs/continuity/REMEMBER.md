@@ -52,3 +52,18 @@
 
 - Old project's continuity archived at obsidian-vault-config `docs/proto-implementation/continuity/`;
   its compliance ontology is dead, its layered-fence/gate-server patterns remain referenceable.
+
+## 2026-08-13 (onnx backend)
+
+- **`nomic-embed-text-v2-moe` has NO ONNX export** (MoE; GGUF-only official quantization) —
+  local ONNX means a different model, hence a different vector space.
+- **Local backend shipped**: `TEAMKB_EMBED_BACKEND=onnx` + `TEAMKB_ONNX_MODEL_DIR`; default
+  `bge-micro-v2` int8 (17 MB, 384-d, ~20 ms/chunk CPU; user chose speed). `nomic-v1.5` ONNX
+  (137 MB, 768-d) documented alt. Deps `onnxruntime+tokenizers`, lazy-imported — http path stays
+  zero-dep. Fetch via `plugin/scripts/fetch_onnx_model.sh` only; server never downloads.
+- **θ is model-specific and seeded per family**: nomic 0.30, bge-micro 0.69 (bge true-match floor
+  0.704 vs junk ceiling 0.680 — narrow margin is the model's ceiling).
+- **Vector-space guard**: `embed_model` stamped in db meta; mismatch disables semantic tools with an
+  explanatory REJECTED (never silent mixing, never runtime fallback between backends).
+- One-time exception granted 2026-08-13: 17 MB bge model + onnx venv at `~/vault/.models/` on this
+  machine for live verification (disk 27 Gi free at grant).

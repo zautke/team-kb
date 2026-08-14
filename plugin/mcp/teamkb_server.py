@@ -374,9 +374,24 @@ def _validate(store, n: dict):
 # ── Embedding client (hosted only — never local weights) ────────────────────
 
 EMBED_URL = os.environ.get("TEAMKB_EMBED_URL", "https://ollama2.braisenly.com").rstrip("/")
-EMBED_MODEL = os.environ.get("TEAMKB_EMBED_MODEL", "nomic-embed-text-v2-moe:latest")
-DOC_PREFIX = "search_document: "   # nomic v2 task prefixes — mandatory
-QUERY_PREFIX = "search_query: "
+EMBED_BACKEND = os.environ.get("TEAMKB_EMBED_BACKEND", "http")  # http | onnx
+ONNX_MODEL_DIR = os.environ.get("TEAMKB_ONNX_MODEL_DIR", "")
+EMBED_MODEL = os.environ.get(
+    "TEAMKB_EMBED_MODEL",
+    "bge-micro-v2-onnx" if EMBED_BACKEND == "onnx" else "nomic-embed-text-v2-moe:latest")
+
+# Task prefixes are a property of the model family, not the backend.
+# nomic models REQUIRE search_document:/search_query:; bge models use a bare
+# document and an instruction-prefixed query.
+if "nomic" in EMBED_MODEL:
+    DOC_PREFIX = "search_document: "
+    QUERY_PREFIX = "search_query: "
+elif "bge" in EMBED_MODEL:
+    DOC_PREFIX = ""
+    QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
+else:
+    DOC_PREFIX = ""
+    QUERY_PREFIX = ""
 
 
 class EmbedError(Exception):
@@ -388,22 +403,84 @@ EMBED_TIMEOUT = 90
 
 
 def embed_texts(texts, prefix, doc=None, phase="CA-3.embed"):
-    """Batch-embed via Ollama /api/embed (sub-batched). L2-normalized vectors."""
+    """Batch-embed (sub-batched) via the configured backend. L2-normalized vectors."""
+    fn = _embed_batch_onnx if EMBED_BACKEND == "onnx" else _embed_batch_http
     out = []
     t0 = time.perf_counter()
     n_batches = (len(texts) + EMBED_BATCH - 1) // EMBED_BATCH
     for i in range(0, len(texts), EMBED_BATCH):
-        out.extend(_embed_batch(texts[i:i + EMBED_BATCH], prefix,
-                                doc=doc, phase=phase, batch=i // EMBED_BATCH))
+        out.extend(fn(texts[i:i + EMBED_BATCH], prefix,
+                      doc=doc, phase=phase, batch=i // EMBED_BATCH))
     emit("embed.done", phase=phase, doc=doc,
          duration_ms=(time.perf_counter() - t0) * 1000,
          n_texts=len(texts), n_batches=n_batches, dim=len(out[0]) if out else 0,
-         model=EMBED_MODEL, prefix=prefix.strip(),
+         model=EMBED_MODEL, backend=EMBED_BACKEND, prefix=prefix.strip(),
          chars=sum(len(t) for t in texts))
     return out
 
 
-def _embed_batch(texts, prefix, doc=None, phase="CA-3.embed", batch=0):
+_ONNX = None  # (session, tokenizer, input_names) — lazy, only when backend=onnx
+
+
+def _onnx_session():
+    global _ONNX
+    if _ONNX is not None:
+        return _ONNX
+    try:
+        import onnxruntime
+        import tokenizers
+    except ImportError as e:
+        raise EmbedError(
+            "TEAMKB_EMBED_BACKEND=onnx requires: pip install onnxruntime tokenizers"
+        ) from e
+    if not ONNX_MODEL_DIR:
+        raise EmbedError("TEAMKB_EMBED_BACKEND=onnx requires TEAMKB_ONNX_MODEL_DIR")
+    d = Path(ONNX_MODEL_DIR)
+    model = next((p for n in ("model_quantized.onnx", "model.onnx")
+                  if (p := d / n).exists()), None)
+    tok_file = d / "tokenizer.json"
+    if model is None or not tok_file.exists():
+        raise EmbedError(f"no model_quantized.onnx/model.onnx + tokenizer.json in {d}")
+    sess = onnxruntime.InferenceSession(str(model), providers=["CPUExecutionProvider"])
+    tok = tokenizers.Tokenizer.from_file(str(tok_file))
+    tok.enable_truncation(max_length=512)   # bge-micro max seq; matches chunk cap
+    tok.no_padding()                        # we pad manually per batch
+    _ONNX = (sess, tok, [i.name for i in sess.get_inputs()])
+    log.info("onnx model=%s dim probe on first batch", model.name)
+    return _ONNX
+
+
+def _embed_batch_onnx(texts, prefix, doc=None, phase="CA-3.embed", batch=0):
+    sess, tok, input_names = _onnx_session()
+    t0 = time.perf_counter()
+    encs = [tok.encode(prefix + t) for t in texts]
+    max_len = max(len(e.ids) for e in encs)
+    ids = [e.ids + [0] * (max_len - len(e.ids)) for e in encs]
+    mask = [[1] * len(e.ids) + [0] * (max_len - len(e.ids)) for e in encs]
+    feeds = {"input_ids": ids, "attention_mask": mask}
+    if "token_type_ids" in input_names:
+        feeds["token_type_ids"] = [[0] * max_len for _ in encs]
+    try:
+        import numpy as np  # onnxruntime dependency, always present with it
+        feeds = {k: np.asarray(v, dtype=np.int64) for k, v in feeds.items()}
+        hidden = sess.run(None, feeds)[0]  # (batch, seq, dim) last_hidden_state
+    except Exception as e:
+        emit("embed.batch", phase=phase, doc=doc, ok=False,
+             duration_ms=(time.perf_counter() - t0) * 1000,
+             batch=batch, size=len(texts), backend="onnx",
+             error=f"{type(e).__name__}: {e}")
+        raise EmbedError(f"onnx inference failed: {e}") from e
+    m = np.asarray(mask, dtype=np.float32)[:, :, None]
+    pooled = (hidden * m).sum(axis=1) / m.sum(axis=1)  # mask-weighted mean pool
+    vecs = [l2norm([float(x) for x in row]) for row in pooled]
+    emit("embed.batch", phase=phase, doc=doc,
+         duration_ms=(time.perf_counter() - t0) * 1000,
+         batch=batch, size=len(texts), backend="onnx", attempt=1,
+         chars=sum(len(t) for t in texts))
+    return vecs
+
+
+def _embed_batch_http(texts, prefix, doc=None, phase="CA-3.embed", batch=0):
     body = json.dumps({"model": EMBED_MODEL, "input": [prefix + t for t in texts]}).encode()
     # Cloudflare rejects urllib's default "Python-urllib/x" User-Agent with 403.
     req = urllib.request.Request(f"{EMBED_URL}/api/embed", data=body,
@@ -418,7 +495,7 @@ def _embed_batch(texts, prefix, doc=None, phase="CA-3.embed", batch=0):
             vecs = [l2norm(v) for v in data["embeddings"]]
             emit("embed.batch", phase=phase, doc=doc,
                  duration_ms=(time.perf_counter() - t0) * 1000,
-                 batch=batch, size=len(texts), attempt=attempt + 1,
+                 batch=batch, size=len(texts), backend="http", attempt=attempt + 1,
                  chars=sum(len(t) for t in texts))
             return vecs
         except (urllib.error.URLError, TimeoutError, KeyError, json.JSONDecodeError) as e:
@@ -533,14 +610,29 @@ class Store:
         for t in ("status/anchor", "status/verified", "status/draft",
                   "source/session", "source/web", "source/paper", "source/code"):
             self.db.execute("INSERT OR IGNORE INTO tags(tag) VALUES(?)", (t,))
-        # Calibrated 2026-08-12 against the research+whitepaper corpus: true
-        # matches floor at ~0.30, true absents ceiling at ~0.17. Seeding 0.45
-        # (the pre-calibration guess) made fresh vaults miss real neighbours.
+        # θ is model-specific. nomic v2-moe: calibrated 2026-08-12 (true matches
+        # floor ~0.30, absents ceiling ~0.17). bge-micro-v2: calibrated
+        # 2026-08-13 (true floor ~0.70, junk ceiling ~0.68 — narrow margin is
+        # the model's quality ceiling; recalibrate per corpus if misses appear).
         # Per-vault override: UPDATE meta SET value=... WHERE key='semantic_theta'.
-        self.db.execute("INSERT OR IGNORE INTO meta VALUES('semantic_theta','0.30')")
+        theta = "0.69" if "bge" in EMBED_MODEL else "0.30"
+        self.db.execute("INSERT OR IGNORE INTO meta VALUES('semantic_theta',?)", (theta,))
         self.db.execute("INSERT OR IGNORE INTO meta VALUES(?,?)",
                         ("embed_model", f"{EMBED_MODEL}"))
         self.db.commit()
+        # Vector-space guard: vectors from different models are incompatible.
+        # A stamped model != the configured model means every stored embedding
+        # belongs to another space — refuse the semantic channel, never mix.
+        stamped = self.db.execute(
+            "SELECT value FROM meta WHERE key='embed_model'").fetchone()[0]
+        self.embed_model_mismatch = (
+            None if stamped == EMBED_MODEL else
+            f"vault embeddings were built with '{stamped}' but the server is "
+            f"configured for '{EMBED_MODEL}' — semantic tools disabled. Fix "
+            f"TEAMKB_EMBED_MODEL/TEAMKB_EMBED_BACKEND, or wipe embeddings and "
+            f"re-ingest to move the vault to the new model's vector space.")
+        if self.embed_model_mismatch:
+            log.critical(self.embed_model_mismatch)
 
     # index surface
     def permalink_exists(self, p):
@@ -763,7 +855,15 @@ def t_submit_document(store, a):
     return json.dumps({"submission_id": sid, "source_path": str(src), "status": "staged"})
 
 
+def _space_guard(store):
+    """Non-None message when semantic channel is disabled by model mismatch."""
+    m = getattr(store, "embed_model_mismatch", None)
+    return f"REJECTED: {m}" if m else None
+
+
 def t_ingest_chunks(store, a):
+    if (g := _space_guard(store)):
+        return g
     sid = a["submissionId"]
     row = store.db.execute("SELECT source_path FROM submissions WHERE id=?", (sid,)).fetchone()
     if row is None:
@@ -796,6 +896,7 @@ def t_ingest_chunks(store, a):
     for c, v in zip(chunks, vecs):
         store.db.execute("INSERT INTO chunk_embeddings VALUES(?,?,?)", (sid, c["id"], pack(v)))
     dim = len(vecs[0])
+    store.db.execute("INSERT OR IGNORE INTO meta VALUES('embed_dim',?)", (str(dim),))
     doc_vec = l2norm([sum(v[i] for v in vecs) / len(vecs) for i in range(dim)])
     store.db.execute("INSERT OR REPLACE INTO doc_embeddings VALUES(?,NULL,?)", (sid, pack(doc_vec)))
     store.db.execute("UPDATE submissions SET status='curating' WHERE id=?", (sid,))
@@ -818,6 +919,8 @@ def t_link_submission(store, a):
 
 
 def t_semantic_search(store, a):
+    if (g := _space_guard(store)):
+        return g
     theta = float(store.meta_get("semantic_theta", "0.45"))
     phase = "CA-4.neighbors" if a.get("target") else "GA-3.retrieve.semantic"
     if a.get("query"):
@@ -853,6 +956,8 @@ def t_semantic_search(store, a):
 
 
 def t_suggest_tags(store, a):
+    if (g := _space_guard(store)):
+        return g
     rows = store.db.execute(
         "SELECT tag, description FROM tags WHERE tag NOT LIKE 'kb/%'").fetchall()
     if not rows:

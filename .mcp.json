@@ -8,8 +8,10 @@
       ],
       "env": {
         "TEAMKB_VAULT": "${TEAMKB_VAULT:-${CLAUDE_PROJECT_DIR:-.}/vault}",
+        "TEAMKB_EMBED_BACKEND": "${TEAMKB_EMBED_BACKEND:-http}",
         "TEAMKB_EMBED_URL": "${TEAMKB_EMBED_URL:-https://ollama2.braisenly.com}",
-        "TEAMKB_EMBED_MODEL": "${TEAMKB_EMBED_MODEL:-nomic-embed-text-v2-moe:latest}"
+        "TEAMKB_EMBED_MODEL": "${TEAMKB_EMBED_MODEL:-nomic-embed-text-v2-moe:latest}",
+        "TEAMKB_ONNX_MODEL_DIR": "${TEAMKB_ONNX_MODEL_DIR:-}"
       }
     }
   }

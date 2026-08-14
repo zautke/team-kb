@@ -102,8 +102,10 @@ the `run_server.sh` fallback logic buys you nothing.
 | Variable | Required | Default | Purpose |
 |----------|----------|---------|---------|
 | `TEAMKB_VAULT` | **yes** | none — server exits 1 | Vault root. No fallback, deliberately: a silent wrong-vault run is worse than a startup failure. |
-| `TEAMKB_EMBED_URL` | no | `https://ollama2.braisenly.com` | Embedding endpoint base. Point it at your own Ollama, LM Studio, or a containerised ONNX service — the API shape is Ollama's `/api/embed`. |
-| `TEAMKB_EMBED_MODEL` | no | `nomic-embed-text-v2-moe:latest` | Embedding model. Changing it changes vector space — re-embed the corpus, do not mix. |
+| `TEAMKB_EMBED_BACKEND` | no | `http` | `http` (Ollama-shaped endpoint) or `onnx` (local in-process ONNX Runtime — see "Local ONNX embeddings" below). |
+| `TEAMKB_EMBED_URL` | no | `https://ollama2.braisenly.com` | http backend only: embedding endpoint base. Point it at your own Ollama, LM Studio, or a containerised ONNX service — the API shape is Ollama's `/api/embed`. |
+| `TEAMKB_EMBED_MODEL` | no | `nomic-embed-text-v2-moe:latest` (http) / `bge-micro-v2-onnx` (onnx) | Embedding model identity. Changing it changes vector space — the server stamps it in the vault db and refuses the semantic channel on mismatch; re-embed the corpus, never mix. |
+| `TEAMKB_ONNX_MODEL_DIR` | onnx only | none | Directory containing `model_quantized.onnx` (or `model.onnx`) + `tokenizer.json`. |
 | `TEAMKB_CORPUS_ROOTS` | no | unrestricted | Colon-separated roots that `submit_document` will accept. Set it to stop ingestion of arbitrary filesystem paths. |
 | `TEAMKB_RUN_ID` | no | `run-<YYYYMMDD-HHMMSS>` | Labels every event from this run so a batch is filterable afterwards. |
 | `TEAMKB_EVENTS` | no | `<vault>/.teamkb-events.jsonl` | Event-log path override. |
@@ -111,6 +113,37 @@ the `run_server.sh` fallback logic buys you nothing.
 
 `TEAMKB_DEFAULT_VAULT` is not read by the server — it is only the fallback that
 `run_server.sh` consumes.
+
+## Local ONNX embeddings
+
+The server can embed entirely on-machine — no network — via ONNX Runtime.
+
+```bash
+# one-time: fetch model (~17 MB) and install the two runtime deps
+plugin/scripts/fetch_onnx_model.sh                 # TaylorAI/bge-micro-v2, quantized
+pip install onnxruntime tokenizers                 # the only non-stdlib deps, lazy-imported
+
+export TEAMKB_EMBED_BACKEND=onnx
+export TEAMKB_ONNX_MODEL_DIR=~/vault/.models/bge-micro-v2-onnx
+```
+
+Facts that matter:
+
+- **Default model `bge-micro-v2`** (384-d, ~17 MB int8): chosen for speed —
+  ~20 ms/chunk on CPU. Higher-quality alternative:
+  `fetch_onnx_model.sh --model nomic-v1.5` (768-d, 137 MB int8) with
+  `TEAMKB_EMBED_MODEL=nomic-embed-text-v1.5-onnx`.
+- **Vector spaces never mix.** The model identity is stamped into the vault db
+  at first use; starting the server with a different `TEAMKB_EMBED_MODEL`
+  disables all semantic tools with an explanatory error until you either fix
+  the env or wipe embeddings and re-ingest.
+- **θ is seeded per model** (`0.30` nomic, `0.69` bge-micro — bge's true/junk
+  score margin is narrow; recalibrate per corpus via
+  `UPDATE meta SET value=... WHERE key='semantic_theta'` if misses appear).
+- Task prefixes are applied automatically per model family (nomic
+  `search_document:`/`search_query:`; bge query-instruction prefix).
+- The server never downloads weights — `fetch_onnx_model.sh` is the only
+  sanctioned path, and it preflights free disk before writing.
 
 ## Protocol details
 

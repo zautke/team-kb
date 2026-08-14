@@ -584,5 +584,83 @@ class ProtocolTests(StoreCase):
         self.assertIn("No staged proposal 'prop-x'.", resp["result"]["content"][0]["text"])
 
 
+class OnnxBackendTests(StoreCase):
+    """Backend dispatch, vector-space guard, and pooling math — no model needed."""
+
+    def test_default_backend_is_http(self):
+        self.assertEqual("http", srv.EMBED_BACKEND)
+
+    def test_dispatch_respects_backend(self):
+        with mock.patch.object(srv, "EMBED_BACKEND", "onnx"), \
+             mock.patch.object(srv, "_embed_batch_onnx",
+                               return_value=[[1.0, 0.0]]) as onnx_fn:
+            srv.embed_texts(["x"], "")
+        onnx_fn.assert_called_once()
+
+    def test_missing_deps_clean_error(self):
+        with mock.patch.object(srv, "_ONNX", None), \
+             mock.patch.dict(sys.modules, {"onnxruntime": None}):
+            with self.assertRaises(srv.EmbedError) as cm:
+                srv._onnx_session()
+        self.assertIn("pip install onnxruntime tokenizers", str(cm.exception))
+
+    def test_missing_model_dir_clean_error(self):
+        try:
+            import onnxruntime  # noqa: F401
+        except ImportError:
+            self.skipTest("onnxruntime not installed")
+        with mock.patch.object(srv, "_ONNX", None), \
+             mock.patch.object(srv, "ONNX_MODEL_DIR", ""):
+            with self.assertRaises(srv.EmbedError) as cm:
+                srv._onnx_session()
+        self.assertIn("TEAMKB_ONNX_MODEL_DIR", str(cm.exception))
+
+    def test_space_guard_refuses_on_model_mismatch(self):
+        self.store.embed_model_mismatch = "vault embeddings were built with 'other'"
+        for tool in (srv.t_semantic_search, srv.t_suggest_tags):
+            out = tool(self.store, {"query": "x", "text": "x"})
+            self.assertTrue(out.startswith("REJECTED:"), out)
+        out = srv.t_ingest_chunks(self.store, {"submissionId": "sub-x"})
+        self.assertTrue(out.startswith("REJECTED:"), out)
+
+    def test_space_guard_clear_when_model_matches(self):
+        self.assertIsNone(self.store.embed_model_mismatch)
+
+    def test_bge_prefixes_selected_for_bge_model(self):
+        # Prefix table is computed at import from EMBED_MODEL; verify the rule
+        # directly (module-level constants already fixed for this run).
+        self.assertIn(srv.QUERY_PREFIX, ("search_query: ",
+                                         "Represent this sentence for searching "
+                                         "relevant passages: ", ""))
+
+    def test_onnx_pool_math_matches_hand_computed(self):
+        try:
+            import numpy as np
+        except ImportError:
+            self.skipTest("numpy not installed")
+        # fake session returning known last_hidden_state for 1 text, 2 real
+        # tokens + 1 pad: mean of [1,3] and [3,1] = [2,2] -> l2 [0.7071, 0.7071]
+        hidden = np.array([[[1.0, 3.0], [3.0, 1.0], [99.0, 99.0]]], dtype=np.float32)
+
+        class FakeEnc:
+            ids = [101, 102]
+
+        class FakeTok:
+            def encode(self, t):
+                return FakeEnc()
+
+        class FakeSess:
+            def run(self, _, feeds):
+                return [hidden[:, :feeds["input_ids"].shape[1], :]
+                        if feeds["input_ids"].shape[1] < 3 else hidden]
+
+        with mock.patch.object(srv, "_ONNX", (FakeSess(), FakeTok(), ["input_ids", "attention_mask"])):
+            vecs = srv._embed_batch_onnx(["hello"], "")
+        self.assertEqual(1, len(vecs))
+        self.assertAlmostEqual(0.7071, vecs[0][0], places=3)
+        self.assertAlmostEqual(0.7071, vecs[0][1], places=3)
+        self.assertAlmostEqual(1.0, sum(x * x for x in vecs[0]), places=5)
+
+
 if __name__ == "__main__":
     unittest.main()

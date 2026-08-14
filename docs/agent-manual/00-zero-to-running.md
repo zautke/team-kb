@@ -18,8 +18,9 @@ If the KB already exists and you just need to use it, skip to
 | Decision | Default | Why it matters |
 |----------|---------|----------------|
 | **Where the vault lives** | `<repo>/vault` | Version it with the code if the team should get knowledge on clone; keep it outside the repo if it is private or huge. |
-| **Which embedding endpoint** | `TEAMKB_EMBED_URL` (Ollama `/api/embed` shape) | Semantic search and neighbour discovery depend on it. Everything else works without it. |
-| **Which embedding model** | `nomic-embed-text-v2-moe:latest` | Changing it later changes the vector space — you would have to re-embed the whole corpus, so choose once. |
+| **Embedding backend** | `TEAMKB_EMBED_BACKEND=http` | `http` needs a network endpoint; `onnx` runs a local model in-process, no network — see [07-mcp-server-config.md](07-mcp-server-config.md) "Local ONNX embeddings" (one 17 MB model + `pip install onnxruntime tokenizers`). |
+| **Which embedding endpoint** | `TEAMKB_EMBED_URL` (Ollama `/api/embed` shape) | http backend only. Semantic search and neighbour discovery depend on it. Everything else works without it. |
+| **Which embedding model** | `nomic-embed-text-v2-moe:latest` (http) / `bge-micro-v2-onnx` (onnx) | Changing it later changes the vector space — the server refuses to mix; you would have to re-embed the whole corpus, so choose once. |
 
 Requirements are otherwise nil: Python 3 standard library only. No pip install,
 no virtualenv, no build.
