@@ -1,5 +1,16 @@
 # SESSION LOG — team-kb (newest first)
 
+## 2026-08-15 — justification-meeting package (775af9f)
+
+Built docs/justification/: evidence-traced walkthrough for a skeptical principal
+engineer, runbook + 5 self-contained demo scripts (all executed, transcripts
+committed), kb_report (corpus health + run stats), regenerable single-file HTML
+evidence dashboard (hosted 994.9s vs ONNX 5.9s comparison), 6 sized observability
+task specs. Demo 2 exposed a real gap — closed-vocab enums were enforced only by
+client-side tool schemas; server now re-checks C1/C3/C6 for any caller. Tests 55/55.
+Earlier (2026-08-14): full battery vs ONNX backend — deterministic PASS first run
+(a67b49a).
+
 ## 2026-08-13 (later) — vault populated, manual written, server registered
 
 Closed the portability gap first: the constitution called markdown canonical but nothing

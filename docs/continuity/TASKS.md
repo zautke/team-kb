@@ -33,7 +33,9 @@
 - [ ] DECIDE: semantic channel on clone — commit embeddings, or re-embed from note text on rebuild
 - [ ] Repoint TEAMKB_EMBED_URL default before handing to the other team (currently a personal tunnel) — mitigated: local `TEAMKB_EMBED_BACKEND=onnx` now works with zero network
 - [x] Local ONNX embedding backend (bge-micro-v2 default, nomic-v1.5 alt) + vector-space guard + per-model θ + fetch script + live verification (2026-08-13)
-- Deferred (M1+): ANN, RRF, md→Note parser/full rebuild, submission GC, Copilot full battery, 4-value verdict, decay/MemRL, C4 auto-stub, tag-registry migrations
+- [x] Justification-meeting package: docs/justification/ (walkthrough, 5 executed demos + transcripts, kb_report, HTML dashboard, 6 observability task specs) — 775af9f
+- [x] Server-side closed-vocabulary re-check (C1/C3/C6) — gap found by demo 2: enums were client-schema-only (775af9f)
+- Deferred (M1+): ANN, RRF, md→Note parser/full rebuild, submission GC, Copilot full battery, 4-value verdict, decay/MemRL, C4 auto-stub, tag-registry migrations; observability T1–T6 (docs/justification/03-observability-tasks.md)
 
 ## Blocked-until
 
