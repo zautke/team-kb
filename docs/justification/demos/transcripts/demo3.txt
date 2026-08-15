@@ -1,0 +1,32 @@
+== 1. FTS/BM25 — exact + paraphrase
+verdict: ok
+-2.52  knowledge/artifact/survey-of-self-evolving-knowledge-graph-systems  Survey of Self-Evolving Knowledge Graph Systems
+verdict: ok
+-2.46  knowledge/artifact/master-kb-formal-post-mortem-model  master-kb Formal Post-Mortem Model
+
+== 2. semantic — conceptual query (needs the embedding endpoint for the query vector)
+verdict: ok
+0.396  knowledge/artifact/the-stratified-memory-organism-whitepaper
+0.393  knowledge/artifact/self-learning-loops-whitepaper
+
+== 3. tag — exact namespaced + class-plane prefix
+verdict: ok
+knowledge/artifact/curation-tactics-whitepaper  Curation Tactics Whitepaper
+knowledge/artifact/master-kb-empirical-failure-audit  master-kb Empirical Failure Audit
+verdict: ok
+knowledge/concept/gates-as-code  Gates as Code
+knowledge/concept/stratified-memory-organism  Stratified Memory Organism
+knowledge/concept/verdict-honesty-contract  Verdict Honesty Contract
+
+== 4. graph — 1-hop backlinks with inverse verbs, from an anchor
+## Backlinks (computed)
+- MENTIONED_BY ← [[knowledge/artifact/c-maf-agents-as-mcp-tools-stack-research]] (stored as MENTIONS)
+- MENTIONED_BY ← [[knowledge/artifact/jcodemunch-functional-spec-recon]] (stored as MENTIONS)
+- MENTIONED_BY ← [[knowledge/artifact/master-kb-empirical-failure-audit]] (stored as MENTIONS)
+- MENTIONED_BY ← [[knowledge/artifact/master-kb-formal-post-mortem-model]] (stored as MENTIONS)
+- DESCRIBED_BY ← [[knowledge/artifact/the-formal-theory-of-the-team-kb-knowledge-graph]] (stored as DESCRIBES)
+- DESCRIBED_BY ← [[knowledge/artifact/curation-tactics-whitepaper]] (stored as DESCRIBES)
+
+== 5. HONESTY: queries with no true answer → verdict: absent, top score shown
+verdict: absent — no notes match. The knowledge likely does not exist yet.
+verdict: absent — no semantic neighbors above θ=0.3 (top score 0.156). The knowledge likely does not exist yet.

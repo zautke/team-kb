@@ -1,0 +1,42 @@
+== 1. bootstrap an empty vault (/tmp/kb-demo1.RrNZ)
+  vault
+  vault/procedures
+  vault/inbox
+  vault/episodes
+  vault/.obsidian
+  vault/playbooks
+  vault/_meta
+  vault/knowledge
+  vault/hubs
+
+== 2. run the FULL battery: 16 documents through the complete pipeline
+   (chunk → embed locally via ONNX → 8 gates → graph → retrieval × 4 modalities)
+[PROBE expected-absent]
+    verdict: absent — no notes match. The knowledge likely does not exist yet.
+[PROBE semantic-absent]
+    verdict: absent — no semantic neighbors above θ=0.69 (top score 0.671). The knowledge likely does not exist yet.
+  knowledge/artifact/survey-of-self-evolving-knowledge-graph-systems: FTS=Y SEM=Y TAG=Y GRAPH=Y
+  knowledge/artifact/survey-of-agentic-self-learning-loops: FTS=Y SEM=Y TAG=Y GRAPH=Y
+  knowledge/artifact/c-maf-agents-as-mcp-tools-stack-research: FTS=Y SEM=Y TAG=Y GRAPH=Y
+  knowledge/artifact/jcodemunch-functional-spec-recon: FTS=Y SEM=Y TAG=Y GRAPH=Y
+  knowledge/artifact/master-kb-empirical-failure-audit: FTS=Y SEM=Y TAG=Y GRAPH=Y
+  knowledge/artifact/master-kb-formal-post-mortem-model: FTS=Y SEM=Y TAG=Y GRAPH=Y
+  knowledge/artifact/obsidian-integration-research: FTS=Y SEM=Y TAG=Y GRAPH=Y
+  knowledge/artifact/the-formal-theory-of-the-team-kb-knowledge-graph: FTS=Y SEM=Y TAG=Y GRAPH=Y
+  knowledge/artifact/the-stratified-memory-organism-whitepaper: FTS=Y SEM=Y TAG=Y GRAPH=Y
+  knowledge/artifact/curation-tactics-whitepaper: FTS=Y SEM=Y TAG=Y GRAPH=Y
+  knowledge/artifact/self-learning-loops-whitepaper: FTS=Y SEM=Y TAG=Y GRAPH=Y
+  knowledge/artifact/c-maf-mcp-architecture-whitepaper: FTS=Y SEM=Y TAG=Y GRAPH=Y
+  knowledge/artifact/code-cartography-whitepaper: FTS=Y SEM=Y TAG=Y GRAPH=Y
+DETERMINISTIC GATE: PASS
+
+real	0m42.685s
+user	0m56.248s
+sys	0m2.087s
+
+== 3. the vault is real markdown, openable in Obsidian right now
+c-maf-agents-as-mcp-tools-stack-research.md
+c-maf-mcp-architecture-whitepaper.md
+code-cartography-whitepaper.md
+curation-tactics-whitepaper.md
+  ... 29 notes total

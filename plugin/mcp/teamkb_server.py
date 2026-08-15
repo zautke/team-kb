@@ -760,6 +760,20 @@ def make_note(title, cls, overview, relations, observations, provenance,
 # ── Tool implementations ─────────────────────────────────────────────────────
 
 def note_from_args(a):
+    # Closed vocabularies are enforced by tool-schema enums for well-behaved
+    # MCP clients — but the server must hold the line for ANY caller, so the
+    # same enums are re-checked here (C1/C3/C6 tier-1 enforcement).
+    if a["entityClass"] not in CLASSES:
+        raise ValueError(f"[C1] Unknown entity class '{a['entityClass']}'. "
+                         f"Closed set: {', '.join(CLASSES)}.")
+    for r in a.get("relations", []):
+        if r["verb"] not in VERBS:
+            raise ValueError(f"[C3] Unknown relation verb '{r['verb']}'. "
+                             f"Closed set: {', '.join(VERBS)}.")
+    for o in a.get("observations", []):
+        if o["kind"] not in OBS_KINDS:
+            raise ValueError(f"[C6] Unknown observation kind '{o['kind']}'. "
+                             f"Closed set: {', '.join(OBS_KINDS)}.")
     relations = [{"verb": r["verb"], "target": r["target"], "since": r["since"],
                   "mode": r.get("mode"), "confidence": None}
                  for r in a.get("relations", [])]

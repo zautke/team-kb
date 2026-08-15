@@ -1,0 +1,17 @@
+== 1. clone markdown ONLY (no database, no index)
+  cloned 30 md files; db present? no
+
+== 2. rebuild the entire index from markdown
+{"vault": "/tmp/kb-demo4.ZdM9", "notes": 29, "edges": 22, "chunks": 0, "doc_embeddings": 0, "tags": 7, "missing_files": [], "embed_pending": [], "rebuilt": {"files_parsed": 29, "parse_failures": [], "duration_ms": 20.03}}
+
+== 3. identical BM25 ranking: original vault vs rebuilt clone
+--- original:
+verdict: ok
+-2.65  knowledge/artifact/self-learning-loops-whitepaper  Self-Learning Loops Whitepaper
+-2.60  knowledge/artifact/survey-of-agentic-self-learning-loops  Survey of Agentic Self-Learning Loops
+-1.79  knowledge/concept/stratified-memory-organism  Stratified Memory Organism
+--- rebuilt clone:
+verdict: ok
+-2.65  knowledge/artifact/self-learning-loops-whitepaper  Self-Learning Loops Whitepaper
+-2.60  knowledge/artifact/survey-of-agentic-self-learning-loops  Survey of Agentic Self-Learning Loops
+-1.79  knowledge/concept/stratified-memory-organism  Stratified Memory Organism

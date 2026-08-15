@@ -1,0 +1,30 @@
+== 1. corpus health of the live vault (kb_report)
+vault: /Volumes/MACDEV/team-kb/vault   db: 1896 KiB
+notes: 29  edges: 22  tags: 14  staged: 0  chunks: 291
+  by class : Event=13, Artifact=13, Concept=3
+  by status: active=29
+semantic: model=nomic-embed-text-v2-moe:latest dim=None θ=0.30  doc_vecs=13 chunk_vecs=291
+parity: fts=29/29 OK  md=29/29 OK
+orphans (semantic tiers, no edges): 0   (edge-free episodes, normal: 13)
+submissions: committed=13
+
+== 2. + run stats from the ONNX battery's committed event stream
+run stats: 669 events, runs run-20260814-133416
+  documents=16  gate_evals=32  gate_failures=0
+  ga: n=10 mean=1.0
+  CA-1.strategy                      docs= 13 p50=    0.0ms p95=     0.0ms fail=0
+  CA-10.dcf|episode                  docs= 13 p50=    0.4ms p95=     0.9ms fail=0
+  CA-11.report                       docs= 13 p50=    0.0ms p95=     0.0ms fail=0
+  CA-2.chunk                         docs= 13 p50=    0.1ms p95=     0.7ms fail=0
+  CA-2/3.chunk_embed                 docs= 13 p50=  432.9ms p95=   789.8ms fail=0
+  CA-3.embed                         docs= 13 p50=  431.9ms p95=   787.8ms fail=0
+  CA-4.neighbors                     docs= 13 p50=    0.2ms p95=     0.3ms fail=0
+  CA-5.tag_similarity                docs= 13 p50=    2.3ms p95=     4.5ms fail=0
+  CA-6.metadata                      docs= 13 p50=    0.0ms p95=     0.0ms fail=0
+  CA-7.commit                        docs= 16 p50=    0.8ms p95=     1.2ms fail=0
+  CA-7.link                          docs= 13 p50=    0.1ms p95=     0.2ms fail=0
+  CA-7.propose                       docs= 16 p50=    0.4ms p95=     0.4ms fail=0
+
+== 3. regenerate the HTML dashboard from telemetry (proves it is derived)
+wrote /Volumes/MACDEV/team-kb/docs/justification/dashboard/kb-dashboard.html (8 KiB)
+open docs/justification/dashboard/kb-dashboard.html

@@ -1,0 +1,28 @@
+== 1. seed one legitimate note (genesis anchor)
+STAGED prop-20260815223504013630 → knowledge/concept/gates-as-code. Call commit_note to finalize.
+COMMITTED knowledge/concept/gates-as-code
+
+== 2. VIOLATION: duplicate permalink (gate C2)
+REJECTED:
+[C2] Permalink 'knowledge/concept/gates-as-code' already exists. Merge or supersede — never suffix.
+
+== 3. VIOLATION: near-duplicate title (gate I4, trigram similarity)
+REJECTED:
+[I4] Title too similar to existing 'Gates as Code' (knowledge/concept/gates-as-code). Merge, supersede, or assert distinct_from.
+
+== 4. VIOLATION: placeholder provenance (gate PROV)
+REJECTED:
+[PROV] Placeholder provenance source 'TBD' rejected.
+
+== 5. VIOLATION: unregistered tag (gate TAG — registry is closed)
+REJECTED:
+[TAG] Tag 'domain/not-registered' is not in the registry (_meta/registries/tags.md). Register it in the same commit.
+
+== 6. CLOSED VOCABULARY: illegal entity class rejected at the boundary —
+     schema enum for MCP clients, re-checked server-side for any caller
+ERROR: [C1] Unknown entity class 'BlogPost'. Closed set: Person, Org, Project, Codebase, Technology, Artifact, Concept, Event, Decision, Agent.
+
+== 7. corrected note: register the tag, then propose+commit cleanly
+REGISTERED domain/demo
+STAGED prop-20260815223517887844 → knowledge/concept/tag-demo-note. Call commit_note to finalize.
+COMMITTED knowledge/concept/tag-demo-note

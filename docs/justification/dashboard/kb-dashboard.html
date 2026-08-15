@@ -1,0 +1,43 @@
+<!-- generated 2026-08-15T16:37:03 by make_dashboard.py — derived artifact, do not hand-edit -->
+<style>
+body{font-family:-apple-system,Segoe UI,sans-serif;margin:24px;max-width:1080px;color:#1c2733}
+h1{font-size:22px} h2{font-size:17px;border-bottom:1px solid #d7dee6;padding-bottom:4px;margin-top:28px}
+table{border-collapse:collapse;font-size:13px;margin:8px 0}
+th,td{border:1px solid #d7dee6;padding:4px 10px;text-align:left}
+th{background:#eef2f6} .ok{color:#1a7f37;font-weight:600} .bad{color:#c62828;font-weight:600}
+.small{color:#667;font-size:12px} code{background:#f2f5f8;padding:1px 4px;border-radius:3px}
+</style>
+<h1>team-kb — evidence dashboard</h1>
+<p class="small">generated 2026-08-15T16:37:03 from committed telemetry (events.jsonl per run) and the live vault index. Regenerate: <code>plugin/scripts/make_dashboard.py</code></p>
+<h2>Battery run comparison</h2><table><tr><th>run</th><th>backend</th><th>model</th><th>docs</th><th>wall</th><th>gate evals</th><th>gate failures</th><th>embed batches</th><th>retries</th><th>embed p50/p95</th><th>GA mean</th></tr>
+<tr><td>run-2026-08-13</td><td>http</td><td>nomic-embed-text-v2-moe:latest</td><td>16</td><td>994.9 s</td><td>32</td><td class="ok">0</td><td>72</td><td>0</td><td>13287.0 / 17963.3 ms</td><td class="ok">1.0</td></tr>
+<tr><td>run-2026-08-14-onnx</td><td>onnx</td><td>bge-micro-v2-onnx</td><td>16</td><td>5.9 s</td><td>32</td><td class="ok">0</td><td>72</td><td>0</td><td>77.9 / 192.3 ms</td><td class="ok">1.0</td></tr>
+</table>
+<h2>Per-phase latency — run-2026-08-13 <span class="small">(run-20260813-150329, run-20260813-final)</span></h2>
+<svg width="640" height="312" font-family="monospace" font-size="12"><text x="0" y="16">CA-1.strategy</text><rect x="240" y="5" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="16" fill="#555">0.0 ms</text><text x="0" y="38">CA-10.dcf|episode</text><rect x="240" y="27" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="38" fill="#555">1.9 ms</text><text x="0" y="60">CA-11.report</text><rect x="240" y="49" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="60" fill="#555">0.0 ms</text><text x="0" y="82">CA-2.chunk</text><rect x="240" y="71" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="82" fill="#555">1.1 ms</text><text x="0" y="104">CA-2/3.chunk_embed</text><rect x="240" y="93" width="340" height="14" fill="#4a7db5" rx="2"/><text x="584" y="104" fill="#555">91155.7 ms</text><text x="0" y="126">CA-3.embed</text><rect x="240" y="115" width="339" height="14" fill="#4a7db5" rx="2"/><text x="583" y="126" fill="#555">91147.6 ms</text><text x="0" y="148">CA-4.neighbors</text><rect x="240" y="137" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="148" fill="#555">1.2 ms</text><text x="0" y="170">CA-5.tag_similarity</text><rect x="240" y="159" width="46" height="14" fill="#4a7db5" rx="2"/><text x="290" y="170" fill="#555">12428.0 ms</text><text x="0" y="192">CA-6.metadata</text><rect x="240" y="181" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="192" fill="#555">0.0 ms</text><text x="0" y="214">CA-7.commit</text><rect x="240" y="203" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="214" fill="#555">3.5 ms</text><text x="0" y="236">CA-7.link</text><rect x="240" y="225" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="236" fill="#555">0.3 ms</text><text x="0" y="258">CA-7.propose</text><rect x="240" y="247" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="258" fill="#555">1.4 ms</text><text x="0" y="280">CA-8.verify|GA-3.retrieve.graph</text><rect x="240" y="269" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="280" fill="#555">1.9 ms</text><text x="0" y="302">GA-1.submit</text><rect x="240" y="291" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="302" fill="#555">3.2 ms</text></svg>
+<p class="small">bars = p95 per pipeline phase; gates exercised: C2, C3, C4, HYP, I1, I4, PROV, TAG</p>
+<h2>Per-phase latency — run-2026-08-14-onnx <span class="small">(run-20260814-133416)</span></h2>
+<svg width="640" height="312" font-family="monospace" font-size="12"><text x="0" y="16">CA-1.strategy</text><rect x="240" y="5" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="16" fill="#555">0.0 ms</text><text x="0" y="38">CA-10.dcf|episode</text><rect x="240" y="27" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="38" fill="#555">0.9 ms</text><text x="0" y="60">CA-11.report</text><rect x="240" y="49" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="60" fill="#555">0.0 ms</text><text x="0" y="82">CA-2.chunk</text><rect x="240" y="71" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="82" fill="#555">0.7 ms</text><text x="0" y="104">CA-2/3.chunk_embed</text><rect x="240" y="93" width="340" height="14" fill="#4a7db5" rx="2"/><text x="584" y="104" fill="#555">789.8 ms</text><text x="0" y="126">CA-3.embed</text><rect x="240" y="115" width="339" height="14" fill="#4a7db5" rx="2"/><text x="583" y="126" fill="#555">787.8 ms</text><text x="0" y="148">CA-4.neighbors</text><rect x="240" y="137" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="148" fill="#555">0.3 ms</text><text x="0" y="170">CA-5.tag_similarity</text><rect x="240" y="159" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="170" fill="#555">4.5 ms</text><text x="0" y="192">CA-6.metadata</text><rect x="240" y="181" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="192" fill="#555">0.0 ms</text><text x="0" y="214">CA-7.commit</text><rect x="240" y="203" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="214" fill="#555">1.2 ms</text><text x="0" y="236">CA-7.link</text><rect x="240" y="225" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="236" fill="#555">0.2 ms</text><text x="0" y="258">CA-7.propose</text><rect x="240" y="247" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="258" fill="#555">0.4 ms</text><text x="0" y="280">CA-8.verify|GA-3.retrieve.graph</text><rect x="240" y="269" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="280" fill="#555">0.1 ms</text><text x="0" y="302">GA-1.submit</text><rect x="240" y="291" width="2" height="14" fill="#4a7db5" rx="2"/><text x="246" y="302" fill="#555">0.9 ms</text></svg>
+<p class="small">bars = p95 per pipeline phase; gates exercised: C2, C3, C4, HYP, I1, I4, PROV, TAG</p>
+<h2>GA scorecard — run-2026-08-13</h2><table><tr><th>modality</th><th>query</th><th>score</th></tr>
+<tr><td>fts</td><td>{&quot;query&quot;: &quot;bi-temporal Graphiti&quot;}</td><td class="ok">1.0</td></tr>
+<tr><td>fts</td><td>{&quot;query&quot;: &quot;duplicate slugs orphans census&quot;}</td><td class="ok">1.0</td></tr>
+<tr><td>sem</td><td>{&quot;query&quot;: &quot;how does the knowledge base stay healthy over time&quo</td><td class="ok">1.0</td></tr>
+<tr><td>sem</td><td>{&quot;query&quot;: &quot;mathematical foundations of typed graphs with constrai</td><td class="ok">1.0</td></tr>
+<tr><td>tag</td><td>{&quot;tag&quot;: &quot;domain/agent-memory&quot;}</td><td class="ok">1.0</td></tr>
+<tr><td>tag</td><td>{&quot;tag&quot;: &quot;kb/concept&quot;, &quot;prefix&quot;: true}</td><td class="ok">1.0</td></tr>
+<tr><td>graph</td><td>{&quot;permalink&quot;: &quot;knowledge/concept/gates-as-code&quot;}</td><td class="ok">1.0</td></tr>
+<tr><td>graph</td><td>{&quot;permalink&quot;: &quot;knowledge/artifact/master-kb-formal-post-mortem-mo</td><td class="ok">1.0</td></tr>
+<tr><td>probe</td><td>{&quot;query&quot;: &quot;quantum blockchain kubernetes recipes&quot;}</td><td class="ok">1.0</td></tr>
+<tr><td>probe</td><td>{&quot;query&quot;: &quot;baking sourdough bread hydration ratios&quot;, &quot;l</td><td class="ok">1.0</td></tr>
+</table>
+<h2>Corpus health (live vault)</h2><table>
+<tr><th>vault</th><td>/Volumes/MACDEV/team-kb/vault</td></tr>
+<tr><th>notes / edges / chunks</th><td>29 / 22 / 291</td></tr>
+<tr><th>by class</th><td>Event=13, Artifact=13, Concept=3</td></tr>
+<tr><th>index parity</th><td>fts 29/29 OK · md 29/29 OK</td></tr>
+<tr><th>semantic</th><td>model=nomic-embed-text-v2-moe:latest θ=0.30 doc_vecs=13 chunk_vecs=291</td></tr>
+<tr><th>orphans (semantic tiers)</th><td>0</td></tr>
+<tr><th>staged proposals</th><td>0</td></tr>
+<tr><th>db size</th><td>1896 KiB</td></tr>
+</table>

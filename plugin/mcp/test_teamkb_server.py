@@ -662,5 +662,43 @@ class OnnxBackendTests(StoreCase):
         self.assertAlmostEqual(1.0, sum(x * x for x in vecs[0]), places=5)
 
 
+class KbReportTests(StoreCase):
+    """corpus_health from plugin/scripts/kb_report.py against a fixture vault."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass() if hasattr(super(), "setUpClass") else None
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+
+    def _commit_one(self, title="Report Fixture Note"):
+        r = srv.t_propose_note(self.store, {
+            "title": title, "entityClass": "Concept",
+            "overview": "fixture", "tags": ["status/draft"],
+            "confidence": 0.9, "provenanceSource": "_meta/x.md",
+            "provenanceAuthor": "test",
+            "isolatedJustification": "genesis anchor"})
+        pid = r.split()[1] if r.startswith("STAGED") else None
+        self.assertIsNotNone(pid, r)
+        srv.t_commit_note(self.store, {"proposalId": pid})
+
+    def test_health_counts_and_parity_ok(self):
+        import kb_report
+        self._commit_one()
+        h = kb_report.corpus_health(Path(self.store.root))
+        self.assertEqual(1, h["notes"])
+        self.assertTrue(h["parity"]["fts_vs_notes_ok"])
+        self.assertTrue(h["parity"]["md_vs_notes_ok"])
+        # an edge-free Concept note is correctly surfaced as a semantic-tier orphan
+        self.assertEqual(["knowledge/concept/report-fixture-note"], h["orphan_notes"])
+
+    def test_parity_catches_induced_fts_gap(self):
+        import kb_report
+        self._commit_one("Second Fixture Note")
+        self.store.db.execute("DELETE FROM notes_fts")
+        self.store.db.commit()
+        h = kb_report.corpus_health(Path(self.store.root))
+        self.assertFalse(h["parity"]["fts_vs_notes_ok"])
+
+
 if __name__ == "__main__":
     unittest.main()
