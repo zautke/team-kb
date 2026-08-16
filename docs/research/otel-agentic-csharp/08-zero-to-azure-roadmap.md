@@ -5,6 +5,25 @@ points. This is the document the implementation team starts from; every claim
 here is elaborated (with sources) in the referenced doc. Compiled 2026-08-15
 from research current to that date.
 
+## Decisions D0–D4 — LOCKED 2026-08-16 (user)
+
+| # | Decision | Choice |
+|---|----------|--------|
+| D0 | Content capture + export topology | Content ON. Simultaneous fan-out to three destinations: **Azure Cosmos DB** (full-fidelity content store; Purview linked to Cosmos = governance plane), **Azure Monitor** (redacted, curated), **Aspire dashboard** (dev loop). |
+| D1 | Trace unit | **Per-step traces** + `session.id`/`gen_ai.conversation.id`, plus a `session.name` attribute; sessions must render as a single group in every UI (Aspire attribute filter; App Insights `operation.name = session.name`; Grafana variable). |
+| D2 | Collector platform | **Azure Container Apps** (sidecar→gateway); re-confirm if agent workloads land elsewhere. |
+| D3 | Tail sampling | Doc-07 starter set: errors-always + slow-steps + token-spend-outliers + 5% baseline, with session-hash variant (whole sessions, not random steps, since D1 is per-step). |
+| D4 | Cost posture | Workspace-based App Insights holds curated subset; full-fidelity archive = Cosmos (per D0; ADX/blob optional later); commitment tier at sustained ≥100 GB/day. |
+
+**Known gap (flagged, not descoped):** Cosmos DB has no OTLP exporter in
+collector contrib. Bridge decided by spike at Phase 2: preferred — collector
+`otlphttp` exporter → small C# ingestion service on ACA → Cosmos SDK bulk
+write (we control document shape; Purview-friendly); fallback — custom
+exporter via ocb build. Redaction placement per D0: the Cosmos pipeline
+carries unredacted content; the Monitor pipeline passes
+`redaction(allowlist) → transform` first. Two collector pipelines, shared
+receivers.
+
 ## The one-page mental model
 
 ```mermaid
@@ -113,4 +132,6 @@ GDPR/DPIA story.
 
 01 (vocabulary) → 02 (C# primitives) → 03 (framework wiring) → 05 (see it
 locally) → 06 (pipeline) → 04 (Azure Monitor) → 07 (hardening) → this
-roadmap for sequencing and the D0–D4 decisions, which are the user's calls.
+roadmap for sequencing and the D0–D4 decisions, locked 2026-08-16 (table at
+top of this doc). Inline "Decision Dn" paragraphs below the table are kept as
+rationale; the table wins on conflict.
