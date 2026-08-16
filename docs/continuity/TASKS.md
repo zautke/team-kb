@@ -43,5 +43,5 @@
 
 ## Open (2026-08-15 — OTel research fan-out)
 
-- [ ] docs/research/otel-agentic-csharp/: 2/8 docs landed (02-dotnet-otel-foundations, 05-aspire-local-loop); 4 agents relaunched after session-limit reset for 01/03/04/06/07; 08-roadmap + README = my distillation after harvest
+- [x] docs/research/otel-agentic-csharp/ COMPLETE: 8 docs + README, all source-cited, dated 2026-08-15; roadmap 08 holds decisions D0-D4 for the user
 - [ ] NOTE: MACDEV volume dropped mid-session; working repo now ~/dev/team-kb (clone, fully pushed). Re-sync MACDEV via git pull when remounted.
