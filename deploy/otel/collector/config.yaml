@@ -1,0 +1,52 @@
+# Local-loop collector config (no Azure). Two pipelines per decision D0:
+#   traces/full    — unredacted, full fidelity → bridge (Cosmos/file) + Aspire
+#   (the curated Azure Monitor pipeline lives in config-azure.yaml)
+# Processor order per doc 06: memory_limiter first, batch last.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 80
+    spike_limit_percentage: 20
+  batch:
+    send_batch_size: 512
+    timeout: 2s
+
+exporters:
+  otlp/aspire:
+    endpoint: aspire-dashboard:18889
+    tls:
+      insecure: true            # dev only — in-network container traffic
+  otlphttp/bridge:
+    endpoint: http://otlp-bridge:8080
+    encoding: json              # bridge parses OTLP/JSON (no protobuf dep)
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  zpages:
+    endpoint: 0.0.0.0:55679    # never expose beyond the compose network
+
+service:
+  extensions: [health_check, zpages]
+  pipelines:
+    traces/full:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/aspire, otlphttp/bridge]
+    metrics/full:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/aspire]
+    logs/full:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/aspire]

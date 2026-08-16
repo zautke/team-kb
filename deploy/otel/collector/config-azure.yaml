@@ -1,0 +1,117 @@
+# Azure variant — everything in config.yaml PLUS the curated pipeline:
+#   traces/curated — redaction(allowlist) → transform → tail_sampling(D3) → Azure Monitor
+# Requires AZURE_MONITOR_CONNECTION_STRING in the environment (compose passes
+# it from .env). Run with: otel-stack.sh -a up -c collector/config-azure.yaml
+#
+# D0 redaction placement: the FULL pipeline (bridge/Cosmos) is unredacted —
+# Cosmos is the governed content store (Purview-linked). Only the Monitor
+# pipeline is scrubbed.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 80
+    spike_limit_percentage: 20
+  batch:
+    send_batch_size: 512
+    timeout: 2s
+
+  # Allowlist: any attribute NOT named here is deleted before Azure Monitor.
+  # Names mirror src/TeamKb.Core/Telemetry.cs — keep the two in sync.
+  redaction/monitor:
+    allow_all_keys: false
+    allowed_keys:
+      - session.id
+      - session.name
+      - operation.name
+      - gen_ai.conversation.id
+      - gen_ai.operation.name
+      - gen_ai.provider.name
+      - gen_ai.request.model
+      - gen_ai.usage.input_tokens
+      - gen_ai.usage.output_tokens
+      - gen_ai.tool.name
+      - gen_ai.tool.call.id
+      - error.type
+      - rpc.system
+      - rpc.service
+      - rpc.method
+    summary: info
+
+  # Cost/cardinality control: cap any surviving long values.
+  transform/truncate:
+    trace_statements:
+      - context: span
+        statements:
+          - truncate_all(attributes, 1024)
+
+  # Decision D3 starter set (doc 07 §3). decision_wait must exceed the
+  # longest step; sampling is per-trace (per-step under D1) — the
+  # string_attribute policy on session.id approximates whole-session
+  # affinity only when all steps of a session share a collector instance.
+  tail_sampling/curated:
+    decision_wait: 30s
+    num_traces: 50000
+    policies:
+      - name: errors-always
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      - name: slow-steps
+        type: latency
+        latency:
+          threshold_ms: 5000
+      - name: token-spend-outliers
+        type: numeric_attribute
+        numeric_attribute:
+          key: gen_ai.usage.output_tokens
+          min_value: 4000
+      - name: baseline
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 5
+
+exporters:
+  otlp/aspire:
+    endpoint: aspire-dashboard:18889
+    tls:
+      insecure: true
+  otlphttp/bridge:
+    endpoint: http://otlp-bridge:8080
+    encoding: json
+  azuremonitor:
+    connection_string: "${env:AZURE_MONITOR_CONNECTION_STRING}"
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+service:
+  extensions: [health_check, zpages]
+  pipelines:
+    traces/full:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/aspire, otlphttp/bridge]
+    traces/curated:
+      receivers: [otlp]
+      processors: [memory_limiter, redaction/monitor, transform/truncate, tail_sampling/curated, batch]
+      exporters: [azuremonitor]
+    metrics/full:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/aspire, azuremonitor]
+    logs/full:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/aspire]

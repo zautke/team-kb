@@ -1,0 +1,63 @@
+# team-kb OTel local loop — Phase 1/2 of docs/research/otel-agentic-csharp/08.
+# All variables come from .env (copy .env.example). See 09-local-deployment.md
+# for the full runbook and otel-stack.sh for lifecycle commands.
+#
+# Topology (decision D0):
+#   app --OTLP--> collector --+--> aspire-dashboard   (dev display, full)
+#                             +--> otlp-bridge        (full fidelity -> Cosmos/file)
+#                             +--> Azure Monitor      (curated; config-azure.yaml only)
+
+services:
+  aspire-dashboard:
+    image: ${ASPIRE_DASHBOARD_IMAGE}
+    container_name: teamkb-aspire
+    environment:
+      # Dev-only: no auth on the dashboard. Never expose this port beyond localhost.
+      DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
+    ports:
+      - "${ASPIRE_UI_PORT}:18888"   # web UI
+    restart: unless-stopped
+
+  otel-collector:
+    image: ${OTEL_COLLECTOR_IMAGE}
+    container_name: teamkb-otelcol
+    command: ["--config=${COLLECTOR_CONFIG:-/etc/otelcol/config.yaml}"]
+    volumes:
+      - ./collector:/etc/otelcol:ro
+    environment:
+      AZURE_MONITOR_CONNECTION_STRING: ${AZURE_MONITOR_CONNECTION_STRING:-}
+    ports:
+      - "${OTLP_GRPC_PORT}:4317"    # OTLP/gRPC ingest
+      - "${OTLP_HTTP_PORT}:4318"    # OTLP/HTTP ingest
+      - "${COLLECTOR_HEALTH_PORT:-14313}:13133"  # health_check extension (otel-stack.sh -a status)
+    depends_on:
+      - aspire-dashboard
+      - otlp-bridge
+    restart: unless-stopped
+
+  otlp-bridge:
+    build:
+      context: ../../src/TeamKb.OtlpBridge
+    container_name: teamkb-otlp-bridge
+    environment:
+      ASPNETCORE_URLS: "http://0.0.0.0:8080"
+      COSMOS_ENDPOINT: ${COSMOS_ENDPOINT:-}
+      COSMOS_KEY: ${COSMOS_KEY:-}
+      COSMOS_DATABASE: ${COSMOS_DATABASE}
+      COSMOS_CONTAINER: ${COSMOS_CONTAINER}
+    ports:
+      - "${BRIDGE_PORT}:8080"
+    volumes:
+      - ./data:/data                # file sink fallback (spans.jsonl)
+    restart: unless-stopped
+
+  # Optional local Cosmos — start with: otel-stack.sh -a up -p cosmos
+  cosmos-emulator:
+    image: ${COSMOS_EMULATOR_IMAGE}
+    container_name: teamkb-cosmos
+    profiles: ["cosmos"]
+    environment:
+      PROTOCOL: https
+    ports:
+      - "${COSMOS_EMULATOR_PORT}:8081"
+    restart: unless-stopped
