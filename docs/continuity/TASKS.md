@@ -30,13 +30,18 @@
 - [x] docs/agent-manual/ — 8 operational how-to docs, all examples live-verified (7c24e2d, 5fbb989, 111803d)
 - [x] Register teamkb MCP server at project scope, portable paths (895eba8)
 - [ ] Restart a session to exercise native mcp__teamkb__* tools (registered but not loaded in-session)
-- [ ] DECIDE: semantic channel on clone — commit embeddings, or re-embed from note text on rebuild
-- [ ] Repoint TEAMKB_EMBED_URL default before handing to the other team (currently a personal tunnel) — mitigated: local `TEAMKB_EMBED_BACKEND=onnx` now works with zero network
+- [x] Semantic channel on clone — DECIDED + shipped: rebuild re-embeds doc vectors from note text; demo4 proves semantic ok on md-only clone (ed4eb8b)
+- [x] Repoint TEAMKB_EMBED_URL — default removed entirely; http backend fails fast without explicit URL; committed config infrastructure-free (ed4eb8b)
 - [x] Local ONNX embedding backend (bge-micro-v2 default, nomic-v1.5 alt) + vector-space guard + per-model θ + fetch script + live verification (2026-08-13)
 - [x] Justification-meeting package: docs/justification/ (walkthrough, 5 executed demos + transcripts, kb_report, HTML dashboard, 6 observability task specs) — 775af9f
 - [x] Server-side closed-vocabulary re-check (C1/C3/C6) — gap found by demo 2: enums were client-schema-only (775af9f)
-- Deferred (M1+): ANN, RRF, md→Note parser/full rebuild, submission GC, Copilot full battery, 4-value verdict, decay/MemRL, C4 auto-stub, tag-registry migrations; observability T1–T6 (docs/justification/03-observability-tasks.md)
+- Deferred (M1+): ANN, RRF, md→Note parser/full rebuild, submission GC, Copilot full battery, 4-value verdict, decay/MemRL, C4 auto-stub, tag-registry migrations; ~~observability T1–T6~~ ALL DONE 2026-08-15 (84ec71c)
 
 ## Blocked-until
 
 (nothing — M0 fully verified, M1 unblocked)
+
+## Open (2026-08-15 — OTel research fan-out)
+
+- [ ] docs/research/otel-agentic-csharp/: 2/8 docs landed (02-dotnet-otel-foundations, 05-aspire-local-loop); 4 agents relaunched after session-limit reset for 01/03/04/06/07; 08-roadmap + README = my distillation after harvest
+- [ ] NOTE: MACDEV volume dropped mid-session; working repo now ~/dev/team-kb (clone, fully pushed). Re-sync MACDEV via git pull when remounted.
