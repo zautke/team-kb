@@ -755,5 +755,72 @@ class RebuildReEmbedTests(StoreCase):
         self.assertEqual(0, report["re_embedded"])
 
 
+class RetrievalRegressionProbes(StoreCase):
+    """T1: canned probe set — every modality, expected verdict + permalink,
+    including expected-absent probes. Semantic uses deterministic fake vectors
+    so CI needs no embedding backend."""
+
+    VEC = {"anchor": [1.0, 0.0], "other": [0.0, 1.0],
+           "q_hit": [0.9, 0.1], "q_miss": [0.1, 0.9]}
+
+    def setUp(self):
+        super().setUp()
+        for title, tag in (("Probe Anchor Note", "status/anchor"),
+                           ("Probe Satellite Note", "status/draft")):
+            r = srv.t_propose_note(self.store, {
+                "title": title, "entityClass": "Concept",
+                "overview": f"distinctive-{title.split()[1].lower()} overview text.",
+                "tags": [tag], "confidence": 0.9,
+                "provenanceSource": "_meta/x.md", "provenanceAuthor": "test",
+                "isolatedJustification": "genesis anchor"})
+            srv.t_commit_note(self.store, {"proposalId": r.split()[1]})
+        srv.t_add_relations(self.store, {
+            "permalink": "knowledge/concept/probe-satellite-note",
+            "relations": [{"verb": "Mentions",
+                           "target": "knowledge/concept/probe-anchor-note",
+                           "since": "2026-08-15"}]})
+        self.store.db.execute("INSERT INTO doc_embeddings VALUES(?,?,?)",
+                              ("sub-p", "knowledge/concept/probe-anchor-note",
+                               srv.pack(srv.l2norm(self.VEC["anchor"]))))
+        self.store.db.execute(
+            "UPDATE meta SET value='0.5' WHERE key='semantic_theta'")
+        self.store.db.commit()
+
+    def _fts(self, q):
+        return srv.t_search_notes(self.store, {"query": q})
+
+    def test_fts_probes(self):
+        hit = self._fts("distinctive-anchor")
+        self.assertIn("verdict: ok", hit)
+        self.assertIn("knowledge/concept/probe-anchor-note", hit)
+        self.assertIn("verdict: absent", self._fts("kubernetes ingress"))
+
+    def test_tag_probes(self):
+        hit = srv.t_search_by_tag(self.store, {"tag": "status/anchor"})
+        self.assertIn("probe-anchor-note", hit)
+        plane = srv.t_search_by_tag(self.store, {"tag": "kb/Concept", "prefix": True})
+        self.assertIn("probe-satellite-note", plane)
+        self.assertIn("verdict: absent",
+                      srv.t_search_by_tag(self.store, {"tag": "domain/nonexistent"}))
+
+    def test_graph_probes(self):
+        note = srv.t_read_note(self.store,
+                               {"permalink": "knowledge/concept/probe-anchor-note"})
+        self.assertIn("MENTIONED_BY", note)          # inverse of DependsOn
+        self.assertIn("probe-satellite-note", note)
+
+    def test_semantic_probes_deterministic(self):
+        def fake(texts, prefix, **kw):
+            key = "q_hit" if "anchor" in texts[0] else "q_miss"
+            return [srv.l2norm(self.VEC[key])] * len(texts)
+        with mock.patch.object(srv, "embed_texts", side_effect=fake):
+            hit = srv.t_semantic_search(self.store, {"query": "about the anchor"})
+            self.assertIn("verdict: ok", hit)
+            self.assertIn("probe-anchor-note", hit)
+            miss = srv.t_semantic_search(self.store, {"query": "sourdough"})
+            self.assertIn("verdict: absent", miss)
+            self.assertIn("top score", miss)
+
+
 if __name__ == "__main__":
     unittest.main()

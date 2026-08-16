@@ -1,12 +1,11 @@
 == 1. corpus health of the live vault (kb_report)
-vault: /Volumes/MACDEV/team-kb/vault   db: 1896 KiB
-notes: 29  edges: 22  tags: 14  staged: 0  chunks: 291
+vault: /Users/derp/dev/team-kb/vault   db: 200 KiB
+notes: 29  edges: 22  tags: 7  staged: 0  chunks: 0
   by class : Event=13, Artifact=13, Concept=3
   by status: active=29
-semantic: model=nomic-embed-text-v2-moe:latest dim=None θ=0.30  doc_vecs=13 chunk_vecs=291
+semantic: model=bge-micro-v2-onnx dim=384 θ=0.69  doc_vecs=16 chunk_vecs=0
 parity: fts=29/29 OK  md=29/29 OK
 orphans (semantic tiers, no edges): 0   (edge-free episodes, normal: 13)
-submissions: committed=13
 
 == 2. + run stats from the ONNX battery's committed event stream
 run stats: 669 events, runs run-20260814-133416
@@ -25,6 +24,30 @@ run stats: 669 events, runs run-20260814-133416
   CA-7.link                          docs= 13 p50=    0.1ms p95=     0.2ms fail=0
   CA-7.propose                       docs= 16 p50=    0.4ms p95=     0.4ms fail=0
 
+== 2b. gate trends + session analytics + embed health (one command each)
+gates: {
+  "days": {
+    "2026-08-14": {
+      "_evals": 32
+    }
+  },
+  "failures_by_gate": {}
+}
+
+sessions: {
+  "days": [
+    "2026-08-14"
+  ],
+  "tool_calls": {
+[teamkb] INFO onnx model=model_quantized.onnx dim probe on first batch
+embed_check: {
+  "ok": true,
+  "backend": "onnx",
+  "model": "bge-micro-v2-onnx",
+  "dim": 384,
+  "latency_ms": 263.0
+}
+
 == 3. regenerate the HTML dashboard from telemetry (proves it is derived)
-wrote /Volumes/MACDEV/team-kb/docs/justification/dashboard/kb-dashboard.html (8 KiB)
+wrote /Users/derp/dev/team-kb/docs/justification/dashboard/kb-dashboard.html (8 KiB)
 open docs/justification/dashboard/kb-dashboard.html

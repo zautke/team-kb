@@ -109,6 +109,7 @@ the `run_server.sh` fallback logic buys you nothing.
 | `TEAMKB_CORPUS_ROOTS` | no | unrestricted | Colon-separated roots that `submit_document` will accept. Set it to stop ingestion of arbitrary filesystem paths. |
 | `TEAMKB_RUN_ID` | no | `run-<YYYYMMDD-HHMMSS>` | Labels every event from this run so a batch is filterable afterwards. |
 | `TEAMKB_EVENTS` | no | `<vault>/.teamkb-events.jsonl` | Event-log path override. |
+| `TEAMKB_EVENTS_MAX_MB` | no | `64` | At startup, an event log over this size is archived to `.teamkb-events.<timestamp>.jsonl` and a fresh log starts. |
 | `TEAMKB_TRACE` | no | off | `1` also writes raw request/response bodies to `<vault>/.teamkb-trace.jsonl`. |
 
 `TEAMKB_DEFAULT_VAULT` is not read by the server — it is only the fallback that

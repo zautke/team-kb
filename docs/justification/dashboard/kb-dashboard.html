@@ -1,4 +1,4 @@
-<!-- generated 2026-08-15T16:37:03 by make_dashboard.py — derived artifact, do not hand-edit -->
+<!-- generated 2026-08-15T20:25:16 by make_dashboard.py — derived artifact, do not hand-edit -->
 <style>
 body{font-family:-apple-system,Segoe UI,sans-serif;margin:24px;max-width:1080px;color:#1c2733}
 h1{font-size:22px} h2{font-size:17px;border-bottom:1px solid #d7dee6;padding-bottom:4px;margin-top:28px}
@@ -8,7 +8,7 @@ th{background:#eef2f6} .ok{color:#1a7f37;font-weight:600} .bad{color:#c62828;fon
 .small{color:#667;font-size:12px} code{background:#f2f5f8;padding:1px 4px;border-radius:3px}
 </style>
 <h1>team-kb — evidence dashboard</h1>
-<p class="small">generated 2026-08-15T16:37:03 from committed telemetry (events.jsonl per run) and the live vault index. Regenerate: <code>plugin/scripts/make_dashboard.py</code></p>
+<p class="small">generated 2026-08-15T20:25:16 from committed telemetry (events.jsonl per run) and the live vault index. Regenerate: <code>plugin/scripts/make_dashboard.py</code></p>
 <h2>Battery run comparison</h2><table><tr><th>run</th><th>backend</th><th>model</th><th>docs</th><th>wall</th><th>gate evals</th><th>gate failures</th><th>embed batches</th><th>retries</th><th>embed p50/p95</th><th>GA mean</th></tr>
 <tr><td>run-2026-08-13</td><td>http</td><td>nomic-embed-text-v2-moe:latest</td><td>16</td><td>994.9 s</td><td>32</td><td class="ok">0</td><td>72</td><td>0</td><td>13287.0 / 17963.3 ms</td><td class="ok">1.0</td></tr>
 <tr><td>run-2026-08-14-onnx</td><td>onnx</td><td>bge-micro-v2-onnx</td><td>16</td><td>5.9 s</td><td>32</td><td class="ok">0</td><td>72</td><td>0</td><td>77.9 / 192.3 ms</td><td class="ok">1.0</td></tr>
@@ -32,12 +32,12 @@ th{background:#eef2f6} .ok{color:#1a7f37;font-weight:600} .bad{color:#c62828;fon
 <tr><td>probe</td><td>{&quot;query&quot;: &quot;baking sourdough bread hydration ratios&quot;, &quot;l</td><td class="ok">1.0</td></tr>
 </table>
 <h2>Corpus health (live vault)</h2><table>
-<tr><th>vault</th><td>/Volumes/MACDEV/team-kb/vault</td></tr>
-<tr><th>notes / edges / chunks</th><td>29 / 22 / 291</td></tr>
+<tr><th>vault</th><td>/Users/derp/dev/team-kb/vault</td></tr>
+<tr><th>notes / edges / chunks</th><td>29 / 22 / 0</td></tr>
 <tr><th>by class</th><td>Event=13, Artifact=13, Concept=3</td></tr>
 <tr><th>index parity</th><td>fts 29/29 OK · md 29/29 OK</td></tr>
-<tr><th>semantic</th><td>model=nomic-embed-text-v2-moe:latest θ=0.30 doc_vecs=13 chunk_vecs=291</td></tr>
+<tr><th>semantic</th><td>model=bge-micro-v2-onnx θ=0.69 doc_vecs=16 chunk_vecs=0</td></tr>
 <tr><th>orphans (semantic tiers)</th><td>0</td></tr>
 <tr><th>staged proposals</th><td>0</td></tr>
-<tr><th>db size</th><td>1896 KiB</td></tr>
+<tr><th>db size</th><td>200 KiB</td></tr>
 </table>

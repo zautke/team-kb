@@ -9,7 +9,7 @@ Five live demos, each ≤2 minutes, each a self-contained script under
 ```bash
 cd <repo-root>
 git status                                    # clean
-python3 -m unittest discover -s plugin/mcp -q # 55 tests OK
+python3 -m unittest discover -s plugin/mcp -q # 63 tests OK
 ls ~/vault/.models/bge-micro-v2-onnx/         # model_quantized.onnx + tokenizer.json
 ~/vault/.models/onnx-venv/bin/python -c "import onnxruntime"   # deps present
 ```

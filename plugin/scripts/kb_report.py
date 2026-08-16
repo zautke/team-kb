@@ -135,23 +135,97 @@ def render_human(h: dict, r: dict | None) -> str:
     return "\n".join(L)
 
 
+def gate_trends(event_paths) -> dict:
+    """T2: gate.eval aggregation across events files, by gate x day."""
+    by = {}
+    totals = Counter()
+    for p in event_paths:
+        for e in metrics_rollup.load(Path(p)):
+            if e.get("kind") != "gate.eval":
+                continue
+            day = (e.get("ts") or "")[:10]
+            for g in e.get("gates_failed", []):
+                by.setdefault(day, Counter())[g] += 1
+                totals[g] += 1
+            by.setdefault(day, Counter())["_evals"] += 1
+    return {"days": {d: dict(c) for d, c in sorted(by.items())},
+            "failures_by_gate": dict(totals)}
+
+
+def check_embed(vault: Path) -> dict:
+    """T3: one live 3-text embed round-trip via the server's own client."""
+    import time as _t
+    sys.path.insert(0, str(SCRIPTS.parent / "mcp"))
+    import teamkb_server as srv
+    try:
+        t0 = _t.perf_counter()
+        vecs = srv.embed_texts(["health", "check", "probe"], srv.DOC_PREFIX,
+                               phase="report.check_embed")
+        return {"ok": True, "backend": srv.EMBED_BACKEND, "model": srv.EMBED_MODEL,
+                "dim": len(vecs[0]),
+                "latency_ms": round((_t.perf_counter() - t0) * 1000, 1)}
+    except srv.EmbedError as e:
+        return {"ok": False, "backend": srv.EMBED_BACKEND, "model": srv.EMBED_MODEL,
+                "error": str(e)}
+
+
+def session_stats(event_paths) -> dict:
+    """T5: agent-usage analytics — searches per modality, absent rate, GA."""
+    tools = Counter()
+    verdicts = Counter()
+    ga = []
+    days = set()
+    for p in event_paths:
+        for e in metrics_rollup.load(Path(p)):
+            k = e.get("kind")
+            if k == "tool.end":
+                tools[e.get("tool", "?")] += 1
+                v = str(e.get("result_head", e.get("result", "")))[:40]
+                if e.get("tool") in ("search_notes", "semantic_search", "search_by_tag"):
+                    verdicts["absent" if "verdict: absent" in v else "ok"] += 1
+            elif k == "ga.score":
+                ga.append(e.get("score", 0))
+            if e.get("ts"):
+                days.add(e["ts"][:10])
+    n = sum(verdicts.values())
+    return {"days": sorted(days), "tool_calls": dict(tools.most_common()),
+            "search_verdicts": dict(verdicts),
+            "absent_rate": round(verdicts["absent"] / n, 3) if n else None,
+            "ga": {"n": len(ga), "mean": round(sum(ga) / len(ga), 3)} if ga else None}
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("-v", "--vault", required=True)
-    ap.add_argument("-e", "--events", default=None)
+    ap.add_argument("-e", "--events", action="append", default=None)
     ap.add_argument("-j", "--json", action="store_true")
+    ap.add_argument("-g", "--gates", action="store_true",
+                    help="gate-violation trends across the given events files")
+    ap.add_argument("-c", "--check-embed", action="store_true",
+                    help="live embed round-trip health check")
+    ap.add_argument("-s", "--sessions", action="store_true",
+                    help="agent-usage analytics across the given events files")
     a = ap.parse_args()
 
     h = corpus_health(Path(a.vault).expanduser())
     if "error" in h:
         print(h["error"], file=sys.stderr)
         return 1
-    r = run_stats(Path(a.events).expanduser()) if a.events else None
+    extras = {}
+    if a.gates:
+        extras["gates"] = gate_trends(a.events or [])
+    if a.check_embed:
+        extras["embed_check"] = check_embed(Path(a.vault).expanduser())
+    if a.sessions:
+        extras["sessions"] = session_stats(a.events or [])
+    r = run_stats(Path(a.events[0]).expanduser()) if a.events else None
     if a.json:
-        print(json.dumps({"health": h, "run": r}, indent=2))
+        print(json.dumps({"health": h, "run": r, **extras}, indent=2))
     else:
         print(render_human(h, r))
+        for k, v in extras.items():
+            print(f"\n{k}: {json.dumps(v, indent=2)}")
     return 0
 
 

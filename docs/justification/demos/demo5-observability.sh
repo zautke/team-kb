@@ -22,6 +22,15 @@ python3 "$REPO/plugin/scripts/kb_report.py" -v "$REPO/vault" \
   -e "$REPO/docs/test-battery/run-2026-08-14-onnx/events.jsonl" | sed -n '/run stats/,$p'
 
 echo
+echo "== 2b. gate trends + session analytics + embed health (one command each)"
+python3 "$REPO/plugin/scripts/kb_report.py" -v "$REPO/vault" \
+  -e "$REPO/docs/test-battery/run-2026-08-14-onnx/events.jsonl" -g -s \
+  | sed -n '/gates:/,$p' | head -14
+TEAMKB_EMBED_BACKEND=onnx TEAMKB_ONNX_MODEL_DIR="$HOME/vault/.models/bge-micro-v2-onnx" \
+  "$HOME/vault/.models/onnx-venv/bin/python" "$REPO/plugin/scripts/kb_report.py" \
+  -v "$REPO/vault" -c | sed -n '/embed_check/,$p'
+
+echo
 echo "== 3. regenerate the HTML dashboard from telemetry (proves it is derived)"
 python3 "$REPO/plugin/scripts/make_dashboard.py" \
   -r "$REPO/docs/test-battery/run-2026-08-13" \

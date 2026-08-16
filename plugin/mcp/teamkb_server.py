@@ -1467,6 +1467,14 @@ def main():
     events_path = Path(os.environ.get("TEAMKB_EVENTS")
                        or store.root / ".teamkb-events.jsonl")
     events_path.parent.mkdir(parents=True, exist_ok=True)
+    # T6 rotation: unbounded append on a long-lived vault; over the cap the old
+    # log is archived next to itself and a fresh one starts. No daemon.
+    max_mb = float(os.environ.get("TEAMKB_EVENTS_MAX_MB", "64"))
+    if events_path.exists() and events_path.stat().st_size > max_mb * 1024 * 1024:
+        rotated = events_path.with_name(
+            events_path.stem + utcnow().strftime(".%Y%m%d-%H%M%S") + ".jsonl")
+        events_path.rename(rotated)
+        log.info("event log over %.0f MB — rotated to %s", max_mb, rotated.name)
     _events["fp"] = events_path.open("a")
     log.info("vault=%s embed=%s/%s", store.root, EMBED_URL, EMBED_MODEL)
     log.info("events → %s (run_id=%s)", events_path, RUN_ID)

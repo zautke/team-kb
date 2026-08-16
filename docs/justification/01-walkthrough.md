@@ -61,7 +61,8 @@ graph TD
 
 - **Markdown canonical, index derived.** The database can be deleted and
   rebuilt from markdown alone: 29 notes + 22 edges in 22 ms, identical BM25
-  scores after rebuild (demo 4). What we own is a folder of readable text.
+  scores after rebuild, and doc-level embeddings re-derived from note text in
+  the same pass (demo 4). What we own is a folder of readable text.
 - **One write path.** Agents get no filesystem write on the vault. Every write
   is `propose_note` → 8 gates → `commit_note` (re-validated at commit).
   Constraint by tool shape, not by prompt.
@@ -113,11 +114,11 @@ from different models can never silently mix.
 
 | Claim | Evidence (committed) |
 |---|---|
-| Unit coverage | 55/55 tests green — gate defect-replay fixtures, serializer byte-parity, parser round-trip, rebuild, telemetry, protocol, ONNX math, report parity (`plugin/mcp/test_teamkb_server.py`) |
+| Unit coverage | 63/63 tests green (incl. a canned retrieval-regression probe set per modality) — gate defect-replay fixtures, serializer byte-parity, parser round-trip, rebuild, telemetry, protocol, ONNX math, report parity (`plugin/mcp/test_teamkb_server.py`) |
 | Full pipeline works (hosted) | Battery 2026-08-12: 13 docs × 4 modalities PASS, GA mean 0.99 (`docs/test-battery/run-2026-08-12/`) |
 | Telemetry catches real defects | Instrumented run 2026-08-13: structured events exposed a live θ-seeding bug the prose report had missed (`docs/test-battery/run-2026-08-13/`) |
 | Full pipeline works (local, no network) | Battery 2026-08-14 on ONNX: **first-run PASS, zero rework** — 16/16 committed, 0 gate failures, GA 10/10, 0 embed retries, server-side pipeline 5.9 s (`docs/test-battery/run-2026-08-14-onnx/`) |
-| Index is re-derivable | md-only clone → rebuild → identical BM25 (demo 4; commit 6a021dd) |
+| Index is re-derivable | md-only clone → rebuild → identical BM25, **and the semantic channel re-embeds from note text during rebuild** — semantic query verified `ok` on the clone, local ONNX, no network (demo 4) |
 | Corpus is live | Repo vault: 29 notes, 22 edges, 291 chunks, 13 doc embeddings, parity fts 29/29, md 29/29 (`kb_report`) |
 | Docs are executable | Every command in the 8-document agent manual was run before being written; doing so caught a real unreachable-error defect (commit 7c24e2d) |
 
@@ -156,7 +157,16 @@ documents now.**
 
 Built: per-phase structured event stream (`events.jsonl` — gate/chunk/embed/
 tool/agent events with run/seq/doc correlation), per-document rollups,
-corpus aggregates, `kb_report` (health + run stats, demo 5), and the
-regenerable HTML evidence dashboard (`dashboard/kb-dashboard.html`).
-Remaining gaps are specced with estimates in `03-observability-tasks.md` —
-all quality-of-life, none required for operation.
+corpus aggregates, `kb_report` (health, run stats, gate trends, session
+analytics, live embed health check — demo 5), a θ-recalibration sampler
+(`theta_calibrate.py`), automatic event-log rotation, CI retrieval-regression
+probes, and the regenerable HTML evidence dashboard
+(`dashboard/kb-dashboard.html`). All six observability tasks specced in
+`03-observability-tasks.md` were implemented and verified the same session —
+see the per-item status notes there.
+
+Also staged for the next initiative: a source-cited research corpus on
+OpenTelemetry for agentic AI in C#/.NET (zero-to-Azure production) under
+`docs/research/otel-agentic-csharp/` — the discovery work for stakeholder-
+visible telemetry is pre-collected, so the implementation phase starts from
+decisions, not research.
