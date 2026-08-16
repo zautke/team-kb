@@ -23,12 +23,21 @@ Embeddings via hosted Ollama (`nomic-embed-text-v2-moe`), env-swappable to ONNX 
 Approved plan: `~/.claude/plans/i-need-to-set-deep-lobster.md` (base + runbook Appendix A + gap
 addendum Appendix B from 3-reviewer distillation). E2E battery vault: `~/vault/kb-test`.
 
-## Status 2026-08-13
+## Status 2026-08-13 (superseded 2026-08-16)
 
 M0.6 done: server (15 tools, 8 gates, 45/45 tests), populated repo vault, telemetry,
-re-derivable index, 8-doc agent manual, project-scope MCP registration. The KB is
-operational and documented for a consuming team. M1 (RRF fusion, richer verdicts) is
-unblocked but deliberately deferred until the corpus is larger than 13 documents.
+re-derivable index, 8-doc agent manual, project-scope MCP registration.
+
+## Status 2026-08-16
+
+M0.8: local ONNX embed backend (bge-micro default, vector-space guard, per-model θ) with
+first-run battery PASS; semantic channel survives md-only clone (re-embed on rebuild);
+committed config infrastructure-free; observability T1–T6 shipped; justification-meeting
+package complete (docs/justification/ — walkthrough, 5 executed demos, kb_report,
+dashboard); tests 63/63. NEW initiative staged: OTel-for-agentic-AI-in-C# —
+research corpus complete (docs/research/otel-agentic-csharp/, 8 docs, roadmap 08 with
+user-reserved decisions D0–D4); implementation team starts on user direction.
+M1 retrieval (RRF, richer verdicts) still deliberately deferred.
 
 ## Phases
 

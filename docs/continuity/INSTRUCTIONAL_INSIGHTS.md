@@ -60,3 +60,20 @@
 - **Approval mechanisms can silently fail to capture consent.** The user approved; the trust dialog
   never fired, so nothing was recorded. Verify the state the mechanism was supposed to write rather
   than assuming the interaction landed.
+
+## 2026-08-16
+
+- **Demos are tests.** Writing the gate demo for the boss exposed a real enforcement hole
+  (closed-vocab enums existed only in client-side tool schemas). A demo scripted to *show*
+  a property will fail loudly when the property doesn't hold — schedule demos as verification,
+  not as theater.
+- **Calibrate from distributions, not single probes.** One junk query at 0.646 suggested θ=0.55
+  was safe; a 9-query distribution showed junk ceiling 0.680 vs true floor 0.704. Sample both
+  sides before setting any threshold, and re-sample when the corpus or model changes
+  (theta_calibrate.py now automates this).
+- **Fail-fast beats convenient defaults for endpoints.** Removing the embed-URL default turned
+  a 23-second network-timeout test hang into an instant clean error AND deleted private
+  infrastructure from committed config — one change, three wins (tests, security, portability).
+- **Fan-out research agents: harvest incrementally.** Persist each agent's deliverable the moment
+  its notification lands (session limits and volume drops killed peers mid-flight); never batch
+  the harvest to the end.

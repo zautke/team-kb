@@ -53,6 +53,22 @@
 - Old project's continuity archived at obsidian-vault-config `docs/proto-implementation/continuity/`;
   its compliance ontology is dead, its layered-fence/gate-server patterns remain referenceable.
 
+## 2026-08-16
+
+- **Agent tool `name:` param routes through teammate mode (iterm2, needs it2 CLI)** on this
+  machine and fails; unnamed spawns run in-process and work. Omit `name` for research fan-outs.
+- **Background research agents die on session limits** — relaunch after the stated reset time;
+  harvest survivors immediately (extract final assistant text from the subagent jsonl).
+- **Watchdogs must verify the deliverable, not a marker string**: grepping subagent transcripts
+  for `stop_reason`/`"type":"result"` false-fires on message metadata. Check for the actual
+  long final text (or rely on task-notifications, which are authoritative).
+- **MACDEV can drop mid-session.** Recovery play that worked: tree was clean+pushed → clone to
+  `~/dev/team-kb`, keep working, `git pull` MACDEV when back. Commit+push early makes this free.
+- **OTel corpus key facts** (docs/research/otel-agentic-csharp/): gen_ai semconv lives in
+  `semantic-conventions-genai` repo, all Development-stability, no tags — pin commit SHA;
+  MCP C# SDK propagates traceparent via JSON-RPC `_meta` (SEP-414) but hosted connectors break
+  traces; Purview is a governance plane, NOT an OTLP sink. Decisions D0–D4 in doc 08 = user's.
+
 ## 2026-08-13 (onnx backend)
 
 - **`nomic-embed-text-v2-moe` has NO ONNX export** (MoE; GGUF-only official quantization) —

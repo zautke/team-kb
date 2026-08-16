@@ -1,5 +1,21 @@
 # SESSION LOG — team-kb (newest first)
 
+## 2026-08-14/16 — ONNX backend + battery, justification package, gap closure, OTel corpus
+
+Local ONNX embedding backend (dc839c1): bge-micro-v2 int8 default (user chose speed),
+vector-space guard, per-model θ; nomic-v2-moe has NO ONNX export so local = different space.
+Full battery vs ONNX (a67b49a): deterministic PASS first run, 5.9 s pipeline, GA 10/10.
+Justification package (775af9f): walkthrough + 5 executed demos + kb_report + dashboard;
+demo 2 exposed a REAL gap — enums were client-schema-only; server now re-checks C1/C3/C6.
+Gap-closure round (ed4eb8b, 84ec71c): semantic-on-clone via re-embed-on-rebuild (demo 4
+proves it, 0.702 ok, no network); personal tunnel removed from all committed defaults
+(http backend fails fast without URL); observability T1–T6 ALL implemented + verified;
+package fully reflected (63 tests, transcripts re-captured, dashboard regen).
+OTel-agentic-C# research fan-out (70eeb06, 588a18a): 5 agents (first round lost 4 to
+session limit; relaunched after reset), 8 source-cited docs + roadmap 08 with decisions
+D0–D4 reserved for the user. Mid-session MACDEV volume dropped — continued from clone
+~/dev/team-kb (tree was clean+pushed); MACDEV re-synced by pull 2026-08-16.
+
 ## 2026-08-15 — justification-meeting package (775af9f)
 
 Built docs/justification/: evidence-traced walkthrough for a skeptical principal

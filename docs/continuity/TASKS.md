@@ -29,7 +29,7 @@
 - [x] md→Note parser + reindex(rebuild=true); verified on markdown-only clone (6a021dd)
 - [x] docs/agent-manual/ — 8 operational how-to docs, all examples live-verified (7c24e2d, 5fbb989, 111803d)
 - [x] Register teamkb MCP server at project scope, portable paths (895eba8)
-- [ ] Restart a session to exercise native mcp__teamkb__* tools (registered but not loaded in-session)
+- [x] Restart a session to exercise native mcp__teamkb__* tools — RESOLVED 2026-08-16: tools appear in fresh sessions (deferred-tool listing confirms mcp__teamkb__* available)
 - [x] Semantic channel on clone — DECIDED + shipped: rebuild re-embeds doc vectors from note text; demo4 proves semantic ok on md-only clone (ed4eb8b)
 - [x] Repoint TEAMKB_EMBED_URL — default removed entirely; http backend fails fast without explicit URL; committed config infrastructure-free (ed4eb8b)
 - [x] Local ONNX embedding backend (bge-micro-v2 default, nomic-v1.5 alt) + vector-space guard + per-model θ + fetch script + live verification (2026-08-13)
@@ -44,4 +44,6 @@
 ## Open (2026-08-15 — OTel research fan-out)
 
 - [x] docs/research/otel-agentic-csharp/ COMPLETE: 8 docs + README, all source-cited, dated 2026-08-15; roadmap 08 holds decisions D0-D4 for the user
-- [ ] NOTE: MACDEV volume dropped mid-session; working repo now ~/dev/team-kb (clone, fully pushed). Re-sync MACDEV via git pull when remounted.
+- [x] MACDEV re-synced via git pull 2026-08-16 — canonical again at 588a18a; ~/dev/team-kb clone is a disposable spare
+- [ ] Justification meeting: run pre-flight from docs/justification/02-demo-runbook.md the morning of
+- [ ] OTel implementation kickoff: user decides D0–D4 (docs/research/otel-agentic-csharp/08), then direct the team

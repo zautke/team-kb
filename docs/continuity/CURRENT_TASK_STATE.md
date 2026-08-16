@@ -1,45 +1,42 @@
 # CURRENT TASK STATE — team-kb
 
-**As of:** 2026-08-13 · **Repo:** <repo-root> (origin: github:/zautke/team-kb) · **Phase:** M0.6 — operational, populated, documented
+**As of:** 2026-08-16 · **Repo:** /Volumes/MACDEV/team-kb (origin: github:/zautke/team-kb, head 588a18a) · **Phase:** M0.8 — operational, justified, gap-closed
 
 ## State
 
-**The KB is live and in use.** Repo `vault/` holds real content (81db1c6): 13 curated
-documents (7 research + 6 whitepapers) + 3 genesis anchors + DCF episodes — 29 notes,
-22 edges, 291 chunks, 13 doc embeddings. All four retrieval modalities verified in place.
+**KB live, fully local-capable, meeting-ready.** All open roadmap gaps closed 2026-08-14/15.
 
-- **Server**: `plugin/mcp/teamkb_server.py`, 15 tools, 8 gates, zero dependencies. Tests 45/45.
-- **Registered** at project scope (895eba8): `.mcp.json` with `${CLAUDE_PROJECT_DIR:-.}` paths
-  and env overrides; `claude mcp list` → `teamkb: ✔ Connected`. Approval recorded in
-  `~/.claude.json` (backup `~/.claude.json.bak-*`).
-  **Not yet live in a session started before registration — restart to get `mcp__teamkb__*` tools.**
-- **Index is re-derivable** (6a021dd): `parse_markdown` inverts the serializer, `reindex(rebuild=true)`
-  rebuilds notes/edges/tags/FTS from markdown alone. Proven on a markdown-only clone: 29 notes,
-  22 edges, 6.5ms, identical BM25 scores.
-- **Telemetry always on**: per-phase events → `<vault>/.teamkb-events.jsonl`; rollup + aggregate
-  via `metrics_rollup.py`; packaging via `collect_evidence.sh`.
-- **Manual**: `docs/agent-manual/` — 00 zero-to-running, 01 quickstart, 02 populate, 03 gates,
-  04 retrieval, 05 tools, 06 troubleshooting, 07 MCP config. Every example run live before writing.
-- C# stack still frozen reference in `src/`.
+- **Server**: `plugin/mcp/teamkb_server.py`, 15 tools, 8 gates + server-side closed-vocab
+  re-check (C1/C3/C6). Dual embed backends: `http` (no default URL — fails fast) and `onnx`
+  (bge-micro-v2 17 MB local, ~20 ms/chunk; nomic-v1.5 documented alt). Vector-space guard;
+  per-model θ seeds (nomic 0.30 / bge 0.69). Tests **63/63**.
+- **Semantic survives clone** (ed4eb8b): `reindex(rebuild=true)` re-embeds doc vectors from
+  note text; demo 4 proves md-only clone → FTS identical BM25 + semantic `ok` 0.702, no network.
+- **ONNX battery** (a67b49a): deterministic PASS first run — 16/16 committed, 0 gate failures,
+  GA 10/10, 72 batches 0 retries, 5.9 s server-side pipeline.
+- **Justification package** `docs/justification/` (775af9f, 84ec71c): walkthrough (evidence-traced),
+  5 executed demo scripts + transcripts, `kb_report` (+ --gates/--check-embed/--sessions),
+  `theta_calibrate.py`, HTML dashboard regenerable from telemetry. **Observability T1–T6 all done.**
+- **OTel-agentic-C# research corpus** `docs/research/otel-agentic-csharp/` (70eeb06, 588a18a):
+  8 docs + README, all source-cited @2026-08-15. Doc 08 = phased roadmap; **decisions D0–D4
+  reserved for the user** (content capture, trace unit, ACA/AKS, sampling policies, cost posture).
+- Committed config is infrastructure-free (personal tunnel removed everywhere live).
+- MCP server registered project-scope; `mcp__teamkb__*` tools now available in fresh sessions.
 
 ## Resume point
 
-Nothing in flight. Highest-value next items (see TASKS):
+Nothing in flight. Next moves are user-directed:
 
-1. **Restart a session** to exercise the registered server through native MCP tools rather than `kbcall.py`.
-2. **Semantic coverage on clone** — open question below; needs a decision before the team relies on it.
-3. M1 retrieval work (RRF fusion) once the corpus is larger.
+1. **Justification meeting** — package ready (`docs/justification/README.md`); pre-flight in 02-runbook.
+2. **OTel implementation team** — starts from research corpus doc 08 after user decides D0–D4.
+3. M1 retrieval items (RRF etc.) remain deliberately deferred until corpus grows.
 
-## Open question for the user (raised 2026-08-13, undecided)
+## Environment notes
 
-Document embeddings derive from *source corpus files*, not from vault notes. A cloned vault
-therefore rebuilds FTS/tags/graph perfectly but has an **empty semantic channel** until documents
-are re-ingested. Two fixes, user's call: (a) commit the embeddings, or (b) make `rebuild` re-embed
-from note text. Neither is implemented.
-
-## Key constraints
-
-- Embeddings hosted only (`TEAMKB_EMBED_URL`); no local model weights on this machine.
-  Default still points at the personal tunnel — **the one non-portable value for the other team.**
-- GA never holds propose/commit; CA never holds fs-write. Write path is gates-only.
-- θ semantic = 0.30 seeded (calibrated); per-vault override in db `meta`.
+- MACDEV volume dropped mid-session 2026-08-15; work continued from clone `~/dev/team-kb`
+  (all pushed). MACDEV re-synced via git pull 2026-08-16 — **both copies at 588a18a; MACDEV
+  canonical again**. `~/dev/team-kb` can be deleted or kept as spare.
+- ONNX runtime venv + model live at `~/vault/.models/` (onnx-venv, bge-micro-v2-onnx) — needed
+  for demos 1/4/5 and any onnx-backend run on this machine.
+- Local embed env (not committed): `TEAMKB_EMBED_BACKEND=onnx`,
+  `TEAMKB_ONNX_MODEL_DIR=~/vault/.models/bge-micro-v2-onnx`.
