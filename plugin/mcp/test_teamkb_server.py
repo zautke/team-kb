@@ -474,7 +474,8 @@ class EventLogTests(StoreCase):
                 {"embeddings": [[0.1] * 8]}).encode(),
                 "__enter__": lambda s: s, "__exit__": lambda *x: None})()
 
-        with mock.patch.object(srv.urllib.request, "urlopen", side_effect=flaky):
+        with mock.patch.object(srv.urllib.request, "urlopen", side_effect=flaky), \
+             mock.patch.object(srv, "EMBED_URL", "http://embed.test"):
             srv.embed_texts(["hello"], srv.DOC_PREFIX, doc="sub-x")
         batches = [e for e in self.lines() if e["kind"] == "embed.batch"]
         self.assertEqual(2, len(batches))
@@ -590,6 +591,13 @@ class OnnxBackendTests(StoreCase):
     def test_default_backend_is_http(self):
         self.assertEqual("http", srv.EMBED_BACKEND)
 
+    def test_http_without_url_fails_fast_and_clean(self):
+        with mock.patch.object(srv, "EMBED_URL", ""):
+            with self.assertRaises(srv.EmbedError) as cm:
+                srv._embed_batch_http(["x"], "")
+        self.assertIn("TEAMKB_EMBED_URL is not set", str(cm.exception))
+        self.assertIn("TEAMKB_EMBED_BACKEND=onnx", str(cm.exception))
+
     def test_dispatch_respects_backend(self):
         with mock.patch.object(srv, "EMBED_BACKEND", "onnx"), \
              mock.patch.object(srv, "_embed_batch_onnx",
@@ -698,6 +706,53 @@ class KbReportTests(StoreCase):
         self.store.db.commit()
         h = kb_report.corpus_health(Path(self.store.root))
         self.assertFalse(h["parity"]["fts_vs_notes_ok"])
+
+
+class RebuildReEmbedTests(StoreCase):
+    """Semantic channel survives a markdown-only clone via re-embed on rebuild."""
+
+    def _commit_concept(self, title):
+        r = srv.t_propose_note(self.store, {
+            "title": title, "entityClass": "Concept",
+            "overview": "re-embed fixture overview.", "tags": ["status/draft"],
+            "confidence": 0.9, "provenanceSource": "_meta/x.md",
+            "provenanceAuthor": "test", "isolatedJustification": "genesis anchor"})
+        srv.t_commit_note(self.store, {"proposalId": r.split()[1]})
+
+    def test_rebuild_re_embeds_note_text(self):
+        self._commit_concept("Re Embed Alpha")
+        self._commit_concept("Re Embed Beta")
+        with mock.patch.object(srv, "embed_texts",
+                               side_effect=lambda ts, *a, **k: [[1.0, 0.0]] * len(ts)) as et:
+            report = srv.rebuild_index(self.store)
+        self.assertEqual(2, report["re_embedded"])
+        self.assertEqual([], report["embed_pending"])
+        rows = self.store.db.execute(
+            "SELECT permalink FROM doc_embeddings ORDER BY permalink").fetchall()
+        self.assertEqual([("knowledge/concept/re-embed-alpha",),
+                          ("knowledge/concept/re-embed-beta",)], rows)
+        # note text (title + overview) is what got embedded
+        self.assertIn("Re Embed Alpha", et.call_args[0][0][0])
+
+    def test_rebuild_survives_embed_failure(self):
+        self._commit_concept("Re Embed Gamma")
+        with mock.patch.object(srv, "embed_texts",
+                               side_effect=srv.EmbedError("endpoint down")):
+            report = srv.rebuild_index(self.store)
+        self.assertEqual(1, report["files_parsed"])          # structural rebuild done
+        self.assertEqual(0, report["re_embedded"])
+        self.assertEqual(["knowledge/concept/re-embed-gamma"], report["embed_pending"])
+
+    def test_rebuild_keeps_existing_embeddings(self):
+        self._commit_concept("Re Embed Delta")
+        self.store.db.execute("INSERT INTO doc_embeddings VALUES(?,?,?)",
+                              ("sub-x", "knowledge/concept/re-embed-delta",
+                               srv.pack([0.6, 0.8])))
+        self.store.db.commit()
+        with mock.patch.object(srv, "embed_texts") as et:
+            report = srv.rebuild_index(self.store)
+        et.assert_not_called()                               # nothing missing → no embed
+        self.assertEqual(0, report["re_embedded"])
 
 
 if __name__ == "__main__":

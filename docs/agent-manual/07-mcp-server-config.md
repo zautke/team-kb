@@ -103,7 +103,7 @@ the `run_server.sh` fallback logic buys you nothing.
 |----------|----------|---------|---------|
 | `TEAMKB_VAULT` | **yes** | none — server exits 1 | Vault root. No fallback, deliberately: a silent wrong-vault run is worse than a startup failure. |
 | `TEAMKB_EMBED_BACKEND` | no | `http` | `http` (Ollama-shaped endpoint) or `onnx` (local in-process ONNX Runtime — see "Local ONNX embeddings" below). |
-| `TEAMKB_EMBED_URL` | no | `https://ollama2.braisenly.com` | http backend only: embedding endpoint base. Point it at your own Ollama, LM Studio, or a containerised ONNX service — the API shape is Ollama's `/api/embed`. |
+| `TEAMKB_EMBED_URL` | http backend | none — http backend fails fast without it | Embedding endpoint base (your own Ollama, LM Studio, or a containerised ONNX service — the API shape is Ollama's `/api/embed`). Not needed for `TEAMKB_EMBED_BACKEND=onnx`. |
 | `TEAMKB_EMBED_MODEL` | no | `nomic-embed-text-v2-moe:latest` (http) / `bge-micro-v2-onnx` (onnx) | Embedding model identity. Changing it changes vector space — the server stamps it in the vault db and refuses the semantic channel on mismatch; re-embed the corpus, never mix. |
 | `TEAMKB_ONNX_MODEL_DIR` | onnx only | none | Directory containing `model_quantized.onnx` (or `model.onnx`) + `tokenizer.json`. |
 | `TEAMKB_CORPUS_ROOTS` | no | unrestricted | Colon-separated roots that `submit_document` will accept. Set it to stop ingestion of arbitrary filesystem paths. |

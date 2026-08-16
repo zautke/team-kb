@@ -12,7 +12,7 @@ logging goes to stderr. Exits on stdin EOF.
 
 Config (env, SSoT — no fallbacks for the vault):
   TEAMKB_VAULT         required. Vault root.
-  TEAMKB_EMBED_URL     default https://ollama2.braisenly.com
+  TEAMKB_EMBED_URL     no default — required for the http backend
   TEAMKB_EMBED_MODEL   default nomic-embed-text-v2-moe:latest
   TEAMKB_CORPUS_ROOTS  optional colon-separated allowed submit roots
   TEAMKB_TRACE         "1" → append every tools/call req+resp to
@@ -373,7 +373,9 @@ def _validate(store, n: dict):
 
 # ── Embedding client (hosted only — never local weights) ────────────────────
 
-EMBED_URL = os.environ.get("TEAMKB_EMBED_URL", "https://ollama2.braisenly.com").rstrip("/")
+# No default endpoint: committed config must never point at anyone's private
+# infrastructure. http backend without an explicit URL fails fast and clean.
+EMBED_URL = os.environ.get("TEAMKB_EMBED_URL", "").rstrip("/")
 EMBED_BACKEND = os.environ.get("TEAMKB_EMBED_BACKEND", "http")  # http | onnx
 ONNX_MODEL_DIR = os.environ.get("TEAMKB_ONNX_MODEL_DIR", "")
 EMBED_MODEL = os.environ.get(
@@ -481,6 +483,11 @@ def _embed_batch_onnx(texts, prefix, doc=None, phase="CA-3.embed", batch=0):
 
 
 def _embed_batch_http(texts, prefix, doc=None, phase="CA-3.embed", batch=0):
+    if not EMBED_URL:
+        raise EmbedError(
+            "TEAMKB_EMBED_URL is not set. Point it at an Ollama-compatible "
+            "/api/embed endpoint, or use TEAMKB_EMBED_BACKEND=onnx for fully "
+            "local embeddings (see docs/agent-manual/07-mcp-server-config.md).")
     body = json.dumps({"model": EMBED_MODEL, "input": [prefix + t for t in texts]}).encode()
     # Cloudflare rejects urllib's default "Python-urllib/x" User-Agent with 403.
     req = urllib.request.Request(f"{EMBED_URL}/api/embed", data=body,
@@ -1091,11 +1098,12 @@ def t_reindex(store, a):
 
 
 def rebuild_index(store):
-    """Re-derive notes/edges/tags/FTS from the vault's markdown alone.
-
-    Chunk and document embeddings are derived from the *source* corpus, not from
-    vault notes, so they are left untouched — a rebuilt clone keeps whatever
-    vectors it shipped with and re-embeds only what it ingests anew.
+    """Re-derive notes/edges/tags/FTS from the vault's markdown alone, then
+    re-embed doc-level vectors from note text so the semantic channel also
+    survives a markdown-only clone. Chunk embeddings stay source-corpus-derived
+    (re-created on re-ingestion); doc-level recall is what a clone needs.
+    Embedding failures degrade gracefully: the structural rebuild always
+    completes and unembedded notes are reported as embed_pending.
     """
     t0 = time.perf_counter()
     parsed, failures = [], []
@@ -1116,11 +1124,40 @@ def rebuild_index(store):
     for n, rel in parsed:
         store.index_note(n, rel)
     store.db.commit()
+
+    # Semantic channel: doc vectors from note text (title + overview +
+    # observations). episodes/ and inbox/ are retrieval-excluded tiers.
+    to_embed = [(n, p) for n, p in [(n, rel[:-3]) for n, rel in parsed]
+                if not p.startswith(("episodes/", "inbox/"))
+                and store.db.execute(
+                    "SELECT 1 FROM doc_embeddings WHERE permalink=?", (p,)
+                ).fetchone() is None]
+    embedded, embed_pending = 0, []
+    if to_embed:
+        texts = [" ".join(filter(None, [n["title"], n.get("overview", "")]
+                                 + [o["text"] for o in n.get("observations", [])]))
+                 for n, _ in to_embed]
+        try:
+            vecs = embed_texts(texts, DOC_PREFIX, phase="CA-9.reindex.re_embed")
+            for (_, p), v in zip(to_embed, vecs):
+                store.db.execute(
+                    "INSERT OR REPLACE INTO doc_embeddings VALUES(?,?,?)",
+                    (f"rebuild:{p}", p, pack(v)))
+            store.db.execute("INSERT OR IGNORE INTO meta VALUES('embed_dim',?)",
+                             (str(len(vecs[0])),))
+            store.db.commit()
+            embedded = len(vecs)
+        except EmbedError as e:
+            embed_pending = [p for _, p in to_embed]
+            log.warning("rebuild re-embed skipped: %s", e)
+
     report = {"files_parsed": len(parsed), "parse_failures": failures,
+              "re_embedded": embedded, "embed_pending": embed_pending,
               "duration_ms": round((time.perf_counter() - t0) * 1000, 2)}
     emit("index.rebuild", phase="CA-9.reindex", ok=not failures,
          duration_ms=report["duration_ms"], files_parsed=len(parsed),
-         n_failures=len(failures))
+         n_failures=len(failures), re_embedded=embedded,
+         n_embed_pending=len(embed_pending))
     return report
 
 
