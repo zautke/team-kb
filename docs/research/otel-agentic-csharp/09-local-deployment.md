@@ -30,7 +30,8 @@ exporter" gap: collector `otlphttp` (encoding **json**) → bridge → Cosmos SD
 | `deploy/otel/docker-compose.yml` | aspire-dashboard + otel-collector + otlp-bridge (+ cosmos-emulator profile) |
 | `deploy/otel/collector/config.yaml` | local pipelines (full → bridge + Aspire) |
 | `deploy/otel/collector/config-azure.yaml` | adds curated pipeline (redaction allowlist → truncate → D3 tail sampling → Azure Monitor) |
-| `deploy/otel/otel-stack.sh` | lifecycle: up / down / status / logs / validate / smoke |
+| `deploy/otel/otel-stack.sh` | lifecycle: up / down / status / logs / validate / smoke (bash) |
+| `deploy/otel/otel-stack.ps1` | identical lifecycle for PowerShell 7+ (Windows/anywhere): `./otel-stack.ps1 -a up` |
 | `src/TeamKb.OtlpBridge/` | bridge source + Dockerfile (compose builds it; standalone, not in TeamKb.sln) |
 
 ## Prerequisites
@@ -48,6 +49,17 @@ cp .env.example .env          # defaults work out of the box (file sink, no Azur
 ./otel-stack.sh -a up         # builds the bridge image, starts the stack
 ./otel-stack.sh -a smoke      # sends one synthetic span end-to-end
 ./otel-stack.sh -a status     # compose ps + collector/bridge health probes
+```
+
+PowerShell (7+, any OS) — same actions, same flags:
+
+```powershell
+cd deploy/otel
+Copy-Item .env.example .env
+./otel-stack.ps1 -a validate
+./otel-stack.ps1 -a up
+./otel-stack.ps1 -a smoke
+./otel-stack.ps1 -a status
 ```
 
 `smoke` PASS criteria: script prints `SMOKE PASS` (span reached the bridge
