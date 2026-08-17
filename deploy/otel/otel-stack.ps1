@@ -42,11 +42,14 @@ if (-not (Test-Path '.env')) {
 }
 
 # Load .env into both $Env and a local table (compose reads .env itself).
+# Unlike bash `source`, this parser must strip inline comments and trim —
+# `PORT=18901   # comment` would otherwise become the literal value.
 $DotEnv = @{}
 foreach ($line in Get-Content '.env') {
     if ($line -match '^\s*([A-Za-z_][A-Za-z0-9_]*)=(.*)$') {
-        $DotEnv[$Matches[1]] = $Matches[2]
-        Set-Item -Path "Env:$($Matches[1])" -Value $Matches[2]
+        $value = ($Matches[2] -replace '\s+#.*$', '').Trim().Trim('"').Trim("'")
+        $DotEnv[$Matches[1]] = $value
+        Set-Item -Path "Env:$($Matches[1])" -Value $value
     }
 }
 function Get-Cfg([string]$Key, [string]$Default = '') {
@@ -75,6 +78,7 @@ switch ($Action) {
             Write-Error 'AZURE_MONITOR_CONNECTION_STRING is empty in .env — required for the Azure config.'
         }
         & $Compose[0] $Compose[1..($Compose.Count - 1)] up -d --build
+        if ($LASTEXITCODE -ne 0) { Write-Error 'docker compose up failed (see output above)' }
         $ui = Get-Cfg 'ASPIRE_UI_PORT'; $grpc = Get-Cfg 'OTLP_GRPC_PORT'
         Write-Host ''
         Write-Host "Aspire dashboard:  http://localhost:$ui"
@@ -108,6 +112,7 @@ switch ($Action) {
         Apply-Config
         docker run --rm -v "${ScriptDir}/collector:/etc/otelcol:ro" `
             (Get-Cfg 'OTEL_COLLECTOR_IMAGE') validate --config $env:COLLECTOR_CONFIG
+        if ($LASTEXITCODE -ne 0) { Write-Error "collector config INVALID: $($env:COLLECTOR_CONFIG)" }
         Write-Host "collector config valid: $($env:COLLECTOR_CONFIG)"
     }
     'smoke' {

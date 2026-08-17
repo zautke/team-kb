@@ -6,5 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.62.0" />
+    <!-- Cosmos SDK still serializes via Newtonsoft internally and requires an explicit >=10.0.2 reference -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 </Project>

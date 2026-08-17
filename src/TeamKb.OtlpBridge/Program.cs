@@ -33,7 +33,11 @@ app.MapPost("/v1/traces", async (HttpRequest request, ISpanSink sink, ILogger<Pr
     JsonNode? payload;
     try
     {
-        payload = await JsonNode.ParseAsync(request.Body);
+        // The collector's otlphttp exporter gzips by default.
+        Stream body = request.Headers.ContentEncoding.Contains("gzip")
+            ? new System.IO.Compression.GZipStream(request.Body, System.IO.Compression.CompressionMode.Decompress)
+            : request.Body;
+        payload = await JsonNode.ParseAsync(body);
     }
     catch (JsonException e)
     {
